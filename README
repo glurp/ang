@@ -1,0 +1,20 @@
+ANG : game
+=========
+Navigate in space, pursuite some star and use planet gravity to
+navigate.
+
+In developpement,
+Working, but missing menu, setup, level choice ....
+
+
+Free to use, modify and distribute...
+
+Requirement
+===========
+Ruby, gosu
+```
+ install ruby 1.9.X
+ > gem install gosu
+ > cd .../ang
+ > ruby main.rb
+```
