@@ -13,12 +13,13 @@
 ###########################################################################
 require 'rubygems'
 require 'gosu'
+
 KK=0.5
-#KK=2
 SX=1280/KK
 SY=900/KK
+
 module ZOrder
-  Background, Stars, Player, UI = *0..3
+  Background, Stars, Player, UI = [0,1,2,3]
 end
 class Numeric
 	def minmax(min,max=nil)
@@ -33,43 +34,28 @@ def e(a,b)
  f=20.0/(a-b)
  [[-10,f].max,+10].min
 end
-# def newt(p1,p2,a,b)
-# k=1.0/10_000_000
-# sign=(a-b)>=0 ? +1 : -1
-# f=sign*k*p1*p2/(a-b)*(a-b)
-# [[-1000,f].max,+1000].min
-# end
-def newt(p1,p2,a,b)
- k=1.0/10_000_000
- d=a-b
- sign=d>=0 ? +1 : -1
- sign*Math.sqrt(k*p1*p2/d*sign).minmax(10)
-end
-def newtxy_old(p1,p2,b,a)
- r=[ newt(p1,p2,a.x,b.x) ,newt(p1,p2,a.y,b.y)]
- p r
- r
-end
-def newtxy(p1,p2,a,b)
+def newton_xy(p1,p2,a,b)
  k=1.0/40000
  dx,dy=[a.x-b.x,a.y-b.y]
  d=Math::sqrt(dx ** 2 + dy ** 2)
- #f=(k*p1*p2/(d*d)).minmax(100)
- f=(k*p1*p2/(d)).minmax(100)
+ #f=(k*p1*p2/(d*d)).minmax(100) : k/d**2 not good for gameplay
+ f=(k*p1*p2/(d)).minmax(10)
  teta=Math.atan2(dy,dx)   
- r=[-f*Math.cos(teta),-f*Math.sin(teta)]
- r
+ [-f*Math.cos(teta),-f*Math.sin(teta)]
 end
+
 ###########################################################################
 #                        P l a y e r
 ###########################################################################
+# move by arrow keyboard acceleration commande, 
+# eat star, attracted by planet
 class Player
   attr_reader :x,:y,:r
   attr_accessor  :score
   def initialize(window)
     @app=window
 	@r=15
-    @image = Gosu::Image.new(window, "media/Starfighter.bmp", true)
+    @image = Gosu::Image.new(window, "Starfighter.bmp", true)
 	self.restart()
   end
   def restart
@@ -114,7 +100,7 @@ class Player
 	stars.each  do |star|
 	  next if star.type
 	  d=Gosu::distance(@x,@y,star.x,star.y)-15-star.r
-	  dx,dy=*newtxy(15*15,star.r*star.r,self,star)
+	  dx,dy=*newton_xy(15*15,star.r*star.r,self,star)
 	  vx+=dx
 	  vy+=dy
 	end
@@ -122,15 +108,14 @@ class Player
   end
 
   def draw(app,stars)
-    x,y=newton(stars)
-    @image.draw_rot(@x, @y, ZOrder::Player, @angle)
-	app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)
+	@image.draw_rot(@x, @y, ZOrder::Player, @angle)
+    x,y=newton(stars) ; app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)  # debug: mark gravity force
 	if app.is_pending
 		@lxy.each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0xffffff00 ,p1[0],p1[1], 0xffffff00 ) if p1} rescue nil
-	elsif @lxy.size>300
-		@lxy[-300..-1].each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0x33ffff00 ,p1[0],p1[1], 0x33ffff00 ) if p1} rescue nil
 	elsif @lxy.size>100
-		@lxy[-100..-1].each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0x33ffff00 ,p1[0],p1[1], 0x33ffff00 ) if p1} rescue nil
+		@lxy[(-1*[300,@lxy.size].min)..-1].each_cons(2) { |p0,p1| 
+			app.draw_line(p0[0],p0[1], 0x33ffff00 ,p1[0],p1[1], 0x33ffff00 ) if p1
+		} rescue nil
 	end
 	@lxy=@lxy[-5000..-1] if @lxy.size>10000
   end
@@ -158,7 +143,6 @@ class Player
 		false
       end
     end
-	#p stars.select { |s| s.type }.size
 	@app.looser if @score<=0
 	@app.winner(@score) if 0 == (stars.select { |s| s.type }.size )
   end
@@ -188,7 +172,6 @@ class Star
   def draw(p)
 	expand(p)
     img = @animation[self.type ? 1 : 0 ]
-    #@image.draw_rot(@x, @y, ZOrder::Player, @angle)
     img.draw_rot(@x, @y, ZOrder::Stars, 0, 0.5,0.5 ,@r/10, @r/10,@color)
   end
   def expand(p) 
@@ -218,7 +201,6 @@ class GameWindow < Gosu::Window
     super((SX*KK).to_i, (SY*KK).to_i, false)
     self.caption = "Gosu Tutorial Game"
     
-    #@background_image = Gosu::Image.new(self, "media/Space.png", true)
 	@lp=[]; 100.times { x=rand(SX) ; y=rand(SY); @lp<<x;@lp<<y }
     
     @player = Player.new(self)
@@ -226,7 +208,7 @@ class GameWindow < Gosu::Window
     @font = Gosu::Font.new(self, Gosu::default_font_name, (20/KK).round)
     @font2 = Gosu::Font.new(self, Gosu::default_font_name, (40/KK).round)
 
-    @star_anim = Gosu::Image::load_tiles(self, "media/Star.png", 25,25, false)
+    @star_anim = Gosu::Image::load_tiles(self, "Star.png", 25,25, false)
 	@ping=0
 	@start=0
 	@mouse=nil
@@ -238,6 +220,7 @@ class GameWindow < Gosu::Window
 	def looser() ego("Loose") end
 	def winner(n) ego("Winne #{n}") end
 	def ego(text)
+	    puts "ego #{text}"
 		@text=text
 		@start=@ping+50
 		Thread.new { sleep 2 ; self.go("Start") }
@@ -247,7 +230,7 @@ class GameWindow < Gosu::Window
 		@text=text
 		@stars = Array.new
 		3.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
-		40.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		10.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
 	def is_pending() (@start > @ping) end
@@ -308,7 +291,7 @@ class GameWindow < Gosu::Window
 			draw_triangle(
 				x, y, 0xAAFFFFFF, 
 				x+(4..8).rand, y+(4..8).rand,  0xAAFFFFFF, 
-				x+(4..8).rand, y,  0xAAFFFFFF) 
+				x+(4..8).rand, y,  0xAAFFFFFF) if rand(100)<20
 		end
 	end		
 	def variable_background()
@@ -319,7 +302,7 @@ class GameWindow < Gosu::Window
 			#----------- barr graph energies reserve level
 			h=5+(@player.score/2000.0)*(SY-10)
 			draw_quad(5, 5, 0xBB55FF55, 20/KK, 5,  0xBB55FF55, 20/KK, h,  0xBBFFFF55, 5 , h , 0xBBFFFF55)
-			#@font2.draw("", 0, 0, ZOrder::UI, 1.0, 1.0, 0xf0f0f000)
+			
 			#------------ textual energie reserve level
 			@font.draw("Score: #{@player.score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
 		end
