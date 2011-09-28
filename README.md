@@ -1,3 +1,4 @@
+= Readme
 == ANG : spacial navigation micro-game
 
 Navigate in space, pursuite some star and use planet gravity to
