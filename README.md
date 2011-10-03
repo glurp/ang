@@ -24,11 +24,12 @@ Newton law ( K.M.m/Dist**2 ) give a gameplay too reactive, so i use my own gravi
 Requirement
 ===========
 
-Ruby, gosu
+Git,Ruby, gosu
 
 ```
  install ruby 1.9.X
  > gem install gosu
- > cd .../ang
+ > git clone http://raubarede@github.com/raubarede/ang.git
+ > cd ang
  > ruby main.rb
 ```
