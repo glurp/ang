@@ -31,26 +31,38 @@ class Numeric
 end
 class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ; end
 
-def e(a,b) (20.0/(a-b)).minmax(-10,+10) end
+def e(a,b) (20.0/(a-b)).minmax(-1,+1) end
 
-def newton_xy(p1,p2,a,b)
- k=1.0/40000
+def newton_xy(p1,p2,a,b,k=1.0/311,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
- d=Math::sqrt(dx ** 2 + dy ** 2)
+ d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
+ return [0,0] if d>dmax
  #f=(k*p1*p2/(d*d)).minmax(100) : k/d**2 not good for gameplay
- f=(k*p1*p2/(d)).minmax(10)
+ f=(k*p1*p2/(d*d-dmin*dmin)).minmax(10)
  teta=Math.atan2(dy,dx)   
  [-f*Math.cos(teta),-f*Math.sin(teta)]
 end
 
+def motion(l,obj,k,dmax) 
+ dx,dy=0,0
+ l.each do |o| 
+	next if o==obj
+	next if block_given?  && ! yield(o)
+	dx1,dy1= newton_xy(obj.r,o.r,obj,o,k,0,dmax)
+	dx+=dx1
+	dy+=dy1
+  end
+  obj.x+=dx
+  obj.y+=dy
+  return Math.sqrt(dx*dx+dy*dy)
+end
 ###########################################################################
 #                        P l a y e r
 ###########################################################################
 # move by arrow keyboard acceleration commande, 
 # eat star, move with current speed, and attractive planets
 class Player
-  attr_reader :x,:y,:r
-  attr_accessor  :score
+  attr_accessor :x,:y,:r,:score
   def initialize(window)
     @app=window
 	@r=15
@@ -153,41 +165,38 @@ end
 #                        S t a r 
 ###########################################################################
 class Star
-  attr_reader :x, :y, :type,:r
+  attr_accessor :x, :y, :type,:r
   
   def initialize(ls,type,animation)
     @animation = animation
 	@ls=ls
 	@type=type
 	@r=@type ? 10 : (20..60).rand()
+	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
-    @color.red =   type ? 255 : 0
+    @color.red =   type ? 255 : 200
     @color.green = type ? 0   : 200 
     @color.blue =  type ? 0   : 200
     @x = (SX/5..(SX-SX/5)).rand
     @y = (SY/5..(SY-SY/5)).rand
   end
-  def move(player)
-	expand(player)
+  def move(game,player,ls)
+    ox,oy=@x,@y
+	expand(game,player,ls)
+	@x=ox if @x>(SX-40) || @x<40
+	@y=oy if @y>(SY-40) || @y<40
+	
   end
   def draw()
     img = @animation[self.type ? 1 : 0 ]
-    img.draw_rot(@x, @y, ZOrder::Stars, 0, 0.5,0.5 ,@r/10, @r/10,@color)
+    img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,@r/40.0, @r/40.0,@color)
   end
-  def expand(p) 
-    ox,oy=@x,@y
-	@ls.each do |s| 
-		next if s==self
-		(@x+=e(@x,s.x) ; @y+=e(@y,s.y) ) if Gosu::distance(@x,@y,s.x,s.y)< ((s.type && self.type) ? 100 : 0 )
-	end
-	d=Gosu::distance(@x,@y,p.x,p.y)-@r-p.r
-	if @type 
-	   (@x+=-e(p.x,@x)/0.5 ; @y+=-e(p.y,@y)/0.5 )  if   d> 20 && d < 180 
-	else
-	   (@x+=e(p.x,@x)/5.0 ; @y+=e(p.y,@y)/5.0 )  if   d> 20 && d < 0 
-	end
-	@x=ox if @x>600 || @x<40
-	@y=oy if @y>440 || @y<40
+  def expand(game,player,ls) 
+     motion(ls,self,-100.0,200) { |o| ! o.type} if type
+     motion(ls,self,-10.0,50) { |o| o.type}
+     motion(ls,self,-10.0,600) { |o| ! o.type } if ! type
+
+ 	 #motion([player],self,-10,80) if type
   end
 end
 
@@ -208,7 +217,7 @@ class GameWindow < Gosu::Window
     @font = Gosu::Font.new(self, Gosu::default_font_name, (20/KK).round)
     @font2 = Gosu::Font.new(self, Gosu::default_font_name, (40/KK).round)
 
-    @star_anim = Gosu::Image::load_tiles(self, "Star.png", 25,25, false)
+    @star_anim = Gosu::Image::load_tiles(self, "Star.bmp", 100,100, false)
 	@ping=0
 	@start=0
 	@mouse=nil
@@ -220,16 +229,17 @@ class GameWindow < Gosu::Window
 	def looser() ego("Loose") end
 	def winner(n) ego("Winne #{n}") end
 	def ego(text)
+		return if @ping < @start
 	    puts "ego #{text}"
 		@text=text
-		@start=@ping+50
+		@start=@ping+200
 		Thread.new { sleep 2 ; self.go("Start") }
 	end
 	def go(text)
 		@start=@ping+200
 		@text=text
 		@stars = Array.new
-		3.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
+		10.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		10.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
@@ -271,11 +281,11 @@ class GameWindow < Gosu::Window
 	
 	def update
 		@ping+=1
+		@stars.each { |star| star.move(self,@player,@stars) }
 		return if @ping<@start
 		interactions()
 		@player.move(@stars)
 		@player.collect_stars(@stars)    
-		@stars.each { |star| star.move(@player) }
 	end
 	
 	def draw
