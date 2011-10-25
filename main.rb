@@ -186,6 +186,7 @@ class Star
 	@ls=ls
 	@type=type
 	@r=@type ? 10 : (20..60).rand()
+	@no_img= type ? 1 : (rand()>0.5 && @r>50) ? 0 : rand(3)+2
 	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
@@ -202,7 +203,7 @@ class Star
 	
   end
   def draw()
-    img = @animation[self.type ? 1 : 0 ]
+    img = @animation[@no_img]
     img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,@r/40.0, @r/40.0,@color)
   end
   def expand(game,player,ls) 
