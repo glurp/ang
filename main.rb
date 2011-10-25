@@ -31,8 +31,17 @@ class Numeric
 end
 class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ; end
 
-def e(a,b) (20.0/(a-b)).minmax(-1,+1) end
 
+def newton_xy1(p1,p2,a,b)
+ k=1.0/40000
+ dx,dy=[a.x-b.x,a.y-b.y]
+ d=Math::sqrt(dx ** 2 + dy ** 2)
+ #f=(k*p1*p2/(d*d)).minmax(100)
+ f=(k*p1*p2/(d)).minmax(100)
+ teta=Math.atan2(dy,dx)   
+ r=[-f*Math.cos(teta),-f*Math.sin(teta)]
+ r
+end
 def newton_xy(p1,p2,a,b,k=1.0/311,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
  d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
@@ -111,7 +120,7 @@ class Player
 	stars.each  do |star|
 	  next if star.type
 	  d=Gosu::distance(@x,@y,star.x,star.y)-15-star.r
-	  dx,dy=*newton_xy(15*15,star.r*star.r,self,star)
+	  dx,dy=*newton_xy1(15*15,star.r*star.r,self,star)
 	  vx+=dx
 	  vy+=dy
 	end
@@ -121,7 +130,7 @@ class Player
   def draw(app,stars)
 	@image.draw_rot(@x, @y, ZOrder::Player, @angle)
     x,y=newton(stars) ; app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)  # debug: mark gravity force
-	if app.is_pending
+	if app.pending?
 		@lxy.each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0xffffff00 ,p1[0],p1[1], 0xffffff00 ) if p1} rescue nil
 	elsif @lxy.size>100
 		@lxy[(-1*[300,@lxy.size].min)..-1].each_cons(2) { |p0,p1| 
@@ -133,15 +142,20 @@ class Player
   
   def collect_stars(stars)
     stars.reject!  do |star|
+	  next if star.x-@x > 200
+	  next if star.x-@x < -200
+	  next if star.y-@y > 200
+	  next if star.y-@y < -200
+
       if Gosu::distance(@x, @y, star.x, star.y) < (15+star.r) then
 		if star.type
-			@score += 70
+			@score += 120
 			true
 		else
 			if @vel_x !=0 || @vel_y!=0			
 				@score -= 10
-				@x -= 15*@vel_x
-				@y -= 15*@vel_y
+				@x -= 25*@vel_x
+				@y -= 25*@vel_y
 			else
 				@x += (-10..+10).rand
 				@y += (-10..+10).rand
@@ -192,11 +206,12 @@ class Star
     img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,@r/40.0, @r/40.0,@color)
   end
   def expand(game,player,ls) 
-     motion(ls,self,-100.0,200) { |o| ! o.type} if type
-     motion(ls,self,-10.0,50) { |o| o.type}
-     motion(ls,self,-10.0,600) { |o| ! o.type } if ! type
+	 return unless game.pending?(40)
+     motion(ls,self,-100.0,110) { |o| ! o.type} if type    # Star   <-> Planet
+     motion(ls,self,-10.0,50)   { |o| o.type}             # *      <-> Star
+     motion(ls,self,-10.0,500)  { |o| ! o.type } if !type # Planet <-> Planet
 
- 	 #motion([player],self,-10,80) if type
+ 	 motion([player],self,-6,180) if type                 # Star   <-> Player 
   end
 end
 
@@ -239,11 +254,11 @@ class GameWindow < Gosu::Window
 		@start=@ping+200
 		@text=text
 		@stars = Array.new
-		10.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
-		10.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		5.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
+		55.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
-	def is_pending() (@start > @ping) end
+	def pending?(d=0) (@start+d > @ping) end
 	
 	######################## Global interactions  : mouse/keyboard
 	
