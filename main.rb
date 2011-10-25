@@ -139,7 +139,7 @@ class Player
     stars.reject!  do |star|
       if Gosu::distance(@x, @y, star.x, star.y) < (15+star.r) then
 		if star.type
-			@score += 70
+			@score += 130
 			true
 		else
 			if @vel_x !=0 || @vel_y!=0			
@@ -247,7 +247,7 @@ class GameWindow < Gosu::Window
 		@text=text
 		@stars = Array.new
 		3.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
-		40.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		10.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
 	def is_pending() (@start > @ping) end
