@@ -185,8 +185,8 @@ class Star
     @animation = animation
 	@ls=ls
 	@type=type
-	@r=@type ? 10 : (20..60).rand()
-	@no_img= type ? 1 : (rand()>0.5 && @r>50) ? 0 : rand(3)+2
+	@r=@type ? 10 : (20..70).rand()
+	@no_img= type ? 1 : (rand()>0.5 && @r>50) ? 0 : (rand(3)+2)
 	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
