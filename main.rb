@@ -42,7 +42,7 @@ def newton_xy1(p1,p2,a,b)
  r=[-f*Math.cos(teta),-f*Math.sin(teta)]
  r
 end
-def newton_xy(p1,p2,a,b,k=1.0/311,dmin=10,dmax=10000)
+def newton_xy(p1,p2,a,b,k=1.0/411,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
  d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
  return [0,0] if d>dmax
