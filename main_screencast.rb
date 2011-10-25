@@ -14,9 +14,12 @@
 require 'rubygems'
 require 'gosu'
 
+# KK=0.5
+# SX=1280/KK
+# SY=900/KK
 KK=0.5
-SX=1280/KK
-SY=900/KK
+SX=640/KK
+SY=480/KK
 
 module ZOrder
   Background, Stars, Player, UI = [0,1,2,3]
@@ -51,10 +54,11 @@ end
 class Player
   attr_reader :x,:y,:r
   attr_accessor  :score
-  def initialize(window)
+  def initialize(window,animation)
+    @animation = animation
     @app=window
 	@r=15
-    @image = Gosu::Image.new(window, "Starfighter.bmp", true)
+	@pos=1
 	self.restart()
   end
   def restart
@@ -64,10 +68,14 @@ class Player
     @score = 2000
 	@lxy=[]
   end
+  def clear
+    @pos=1
+  end
   def warp(x, y)    @x, @y = x, y  ; end
-  def turn_left()     @vangle -= 0.3 ; end
-  def turn_right()    @vangle += 0.3 ; end  
+  def turn_left()    @pos=3 ;  @vangle -= 0.3 ; end
+  def turn_right()   @pos=4 ;  @vangle += 0.3 ; end  
   def accelerate(s)
+    @pos= s ? 0 : 2
     @score-=3
     @vel_x += Gosu::offset_x(@angle, s ? 0.1 : -0.1)
     @vel_y += Gosu::offset_y(@angle, s ? 0.1 : -0.1)
@@ -107,7 +115,9 @@ class Player
   end
 
   def draw(app,stars)
-	@image.draw_rot(@x, @y, ZOrder::Player, @angle)
+	img = @animation[@pos]
+    img.draw_rot(@x, @y, ZOrder::Player, @angle)  # (@x, @y, ZOrder::Stars, 0, 0.5,0.5 ,@r/10, @r/10,@color)  
+	#@image.draw_rot(@x, @y, ZOrder::Player, @angle)
     x,y=newton(stars) ; app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)  # debug: mark gravity force
 	if app.is_pending
 		@lxy.each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0xffffff00 ,p1[0],p1[1], 0xffffff00 ) if p1} rescue nil
@@ -123,7 +133,7 @@ class Player
     stars.reject!  do |star|
       if Gosu::distance(@x, @y, star.x, star.y) < (15+star.r) then
 		if star.type
-			@score += 130
+			@score += 70
 			true
 		else
 			if @vel_x !=0 || @vel_y!=0			
@@ -202,8 +212,8 @@ class GameWindow < Gosu::Window
     self.caption = "Gosu Tutorial Game"
     
 	@lp=[]; 100.times { x=rand(SX) ; y=rand(SY); @lp<<x;@lp<<y }
-    
-    @player = Player.new(self)
+    @player_anim=  Gosu::Image::load_tiles(self, "Starfighter2.bmp", 50,50, false)
+    @player = Player.new(self,@player_anim)
     @player.warp(320, 240)
     @font = Gosu::Font.new(self, Gosu::default_font_name, (20/KK).round)
     @font2 = Gosu::Font.new(self, Gosu::default_font_name, (40/KK).round)
@@ -272,6 +282,7 @@ class GameWindow < Gosu::Window
 	def update
 		@ping+=1
 		return if @ping<@start
+		@player.clear()
 		interactions()
 		@player.move(@stars)
 		@player.collect_stars(@stars)    
@@ -290,8 +301,8 @@ class GameWindow < Gosu::Window
 		@lp.each_slice(2) do |x,y| 
 			draw_triangle(
 				x, y, 0xAAFFFFFF, 
-				x+(4..8).rand, y+(4..8).rand,  0xAAFFFFFF, 
-				x+(4..8).rand, y,  0xAAFFFFFF)
+				x+(3..5).rand, y+(3..5).rand,  0xAAFFFFFF, 
+				x+(3..5).rand, y,  0xAAFFFFFF) 
 		end
 	end		
 	def draw_variable_background()
