@@ -29,7 +29,7 @@ Git,Ruby, gosu
 ```
  install ruby 1.9.X
  > gem install gosu
- > git clone http://raubarede@github.com/raubarede/ang.git
+ > git clone http://github.com/raubarede/ang.git
  > cd ang
  > ruby main.rb
 ```
