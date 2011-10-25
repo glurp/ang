@@ -19,7 +19,7 @@ Code is remasterised a lot
 
 Physics
 =======
-Newton law ( K.M.m/Dist**2 ) give a gameplay too reactive, so i use my own gravity version :)
+Newton law ( K.M.m/Dist**2 ) give a gameplay too reactive, so I use my own gravity version :)
 
 Requirement
 ===========
