@@ -30,9 +30,10 @@ Git,Ruby, gosu
  install ruby 1.9.X
  > gem install gosu
  > gem install ang
+ > ang
+
  or
  > git clone http://github.com/raubarede/ang.git
-
  > cd ang
  > ruby main.rb
 ```
