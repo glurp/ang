@@ -1,0 +1,4 @@
+require 'gosu'
+
+Dir.chdir(File.dirname(__FILE__)+"/..")
+load 'main.rb'
