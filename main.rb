@@ -42,7 +42,7 @@ def newton_xy1(p1,p2,a,b)
  r=[-f*Math.cos(teta),-f*Math.sin(teta)]
  r
 end
-def newton_xy(p1,p2,a,b,k=1.0/411,dmin=10,dmax=10000)
+def newton_xy(p1,p2,a,b,k=1.0/300,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
  d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
  return [0,0] if d>dmax
@@ -72,11 +72,15 @@ end
 # eat star, move with current speed, and attractive planets
 class Player
   attr_accessor :x,:y,:r,:score
-  def initialize(window)
+  def initialize(window,animation)
+    @animation = animation  
     @app=window
+	clear()
 	@r=15
-    @image = Gosu::Image.new(window, "Starfighter.bmp", true)
 	self.restart()
+  end
+  def clear
+    @pos=1
   end
   def restart
     @vel_x = @vel_y = @angle = @vangle = 0.0
@@ -86,26 +90,24 @@ class Player
 	@lxy=[]
   end
   def warp(x, y)    @x, @y = x, y  ; end
-  def turn_left()     @vangle -= 0.3 ; end
-  def turn_right()    @vangle += 0.3 ; end  
+  def turn_left()    @pos=3 ;  @vangle -= 0.3 ; end
+  def turn_right()   @pos=4 ;  @vangle += 0.3 ; end  
   def accelerate(s)
+    @pos= s ? 0 : 2
     @score-=3
     @vel_x += Gosu::offset_x(@angle, s ? 0.1 : -0.1)
     @vel_y += Gosu::offset_y(@angle, s ? 0.1 : -0.1)
   end
   
   def move(stars)
-    @x += @vel_x
-    @y += @vel_y
-	@vel_x *= -1 if @x >= SX || @x <= 0 
-	@vel_y *= -1 if @y >= SY || @y <= 0
+	a=false
+	(a=true;@vel_x *= -1) if @x >= SX || @x <= 0 
+	(a=true;@vel_y *= -1) if @y >= SY || @y <= 0
 	@x -= 10 if @x >= SX   && @vel_x == 0
 	@y -= 10 if @y >= SY  && @vel_y == 0
 	@x += 10 if @x <= 0   && @vel_x == 0
 	@y += 10 if @y <= 0   && @vel_y == 0
-    
-    #@vel_x *= 0.998
-    #@vel_y *= 0.998
+	
 	@angle+=@vangle
 	@vangle=@vangle*95.0/100
 	@lxy << [@x,@y] if @vel_x!=0 && @vel_y!=0
@@ -114,6 +116,13 @@ class Player
 	@vel_y+=vy
     @vel_x.minmax(-50,+50)
     @vel_y.minmax(-50,+50)
+    @x += @vel_x
+    @y += @vel_y
+	if a
+		@vel_x*=1
+		@vel_y*=1
+	end
+	
   end
   def  newton(stars)
 	vx = vy = 0.0
@@ -128,12 +137,13 @@ class Player
   end
 
   def draw(app,stars)
-	@image.draw_rot(@x, @y, ZOrder::Player, @angle)
+	img = @animation[@pos]
+	img.draw_rot(@x, @y, ZOrder::Player, @angle)
     x,y=newton(stars) ; app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)  # debug: mark gravity force
 	if app.pending?
 		@lxy.each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0xffffff00 ,p1[0],p1[1], 0xffffff00 ) if p1} rescue nil
 	elsif @lxy.size>100
-		@lxy[(-1*[300,@lxy.size].min)..-1].each_cons(2) { |p0,p1| 
+		@lxy[(-1*[800,@lxy.size].min)..-1].each_cons(2) { |p0,p1| 
 			app.draw_line(p0[0],p0[1], 0x33ffff00 ,p1[0],p1[1], 0x33ffff00 ) if p1
 		} rescue nil
 	end
@@ -185,8 +195,8 @@ class Star
     @animation = animation
 	@ls=ls
 	@type=type
-	@r=@type ? 10 : (20..70).rand()
-	@no_img= type ? 1 : (rand()>0.5 && @r>50) ? 0 : (rand(3)+2)
+	@r=@type ? 10 : (30..60).rand()
+	@no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
 	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
@@ -228,7 +238,8 @@ class GameWindow < Gosu::Window
     
 	@lp=[]; 100.times { x=rand(SX) ; y=rand(SY); @lp<<x;@lp<<y }
     
-    @player = Player.new(self)
+    @player_anim=  Gosu::Image::load_tiles(self, "Starfighter.bmp", 50,50, false)
+    @player = Player.new(self,@player_anim)    
     @player.warp(320, 240)
     @font = Gosu::Font.new(self, Gosu::default_font_name, (20/KK).round)
     @font2 = Gosu::Font.new(self, Gosu::default_font_name, (40/KK).round)
@@ -255,7 +266,7 @@ class GameWindow < Gosu::Window
 		@start=@ping+200
 		@text=text
 		@stars = Array.new
-		5.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
+		7.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		55.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
@@ -297,6 +308,7 @@ class GameWindow < Gosu::Window
 	
 	def update
 		@ping+=1
+		@player.clear()
 		@stars.each { |star| star.move(self,@player,@stars) }
 		return if @ping<@start
 		interactions()
