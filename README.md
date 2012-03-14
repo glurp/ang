@@ -17,6 +17,8 @@ Demo of gosu
 Raster file come directly from these.
 Code is remasterised a lot
 
+http://regisaubarede.posterous.com/tag/game
+
 Physics
 =======
 Newton law ( K.M.m/Dist**2 ) give a gameplay too reactive, so I use my own gravity version :)
