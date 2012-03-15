@@ -11,12 +11,20 @@
 #      > ocra main.rb
 #
 ###########################################################################
-require 'rubygems'
-require 'gosu'
+
+##################### Tuning ##########################
 
 KK=0.5
-SX=1280/KK
-SY=900/KK
+SX=1280/KK # window size width
+SY=900/KK  #             height
+$INITIALE_SCORE=2000
+$NB_STAR=55
+$RANGE_STAR_SIZE=(20..50) # more planet / bigger planets ==>> harder game!
+$NB_PLANET=5
+#######################################################
+
+require 'rubygems'
+require 'gosu'
 
 module ZOrder
   Background, Stars, Player, UI = [0,1,2,3]
@@ -31,7 +39,7 @@ class Numeric
 end
 class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ; end
 
-
+# pseudo newton
 def newton_xy1(p1,p2,a,b)
  k=1.0/40000
  dx,dy=[a.x-b.x,a.y-b.y]
@@ -42,6 +50,8 @@ def newton_xy1(p1,p2,a,b)
  r=[-f*Math.cos(teta),-f*Math.sin(teta)]
  r
 end
+
+# newton, with  'amrtissement'
 def newton_xy(p1,p2,a,b,k=1.0/300,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
  d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
@@ -52,6 +62,9 @@ def newton_xy(p1,p2,a,b,k=1.0/300,dmin=10,dmax=10000)
  [-f*Math.cos(teta),-f*Math.sin(teta)]
 end
 
+# apply gravity between obj and a list l of planet
+# k=coef gr&avity, >0 attraction, <0 repulsion
+# dmaw : distance max, no attaction if distance>dmax
 def motion(l,obj,k,dmax) 
  dx,dy=0,0
  l.each do |o| 
@@ -65,6 +78,7 @@ def motion(l,obj,k,dmax)
   obj.y+=dy
   return Math.sqrt(dx*dx+dy*dy)
 end
+
 ###########################################################################
 #                        P l a y e r
 ###########################################################################
@@ -86,7 +100,7 @@ class Player
     @vel_x = @vel_y = @angle = @vangle = 0.0
     @x = SX/2
 	@y = SY/2
-    @score = 2000
+    @score = $INITIALE_SCORE
 	@lxy=[]
   end
   def warp(x, y)    @x, @y = x, y  ; end
@@ -166,6 +180,8 @@ class Player
 				@score -= 10
 				@x -= 25*@vel_x
 				@y -= 25*@vel_y
+				@x -= -2*25*@vel_x if @x >= SX   && @vel_x == 0
+				@y -= -2*25*@vel_y if @y >= SY  && @vel_y == 0
 			else
 				@x += (-10..+10).rand
 				@y += (-10..+10).rand
@@ -195,7 +211,7 @@ class Star
     @animation = animation
 	@ls=ls
 	@type=type
-	@r=@type ? 10 : (30..60).rand()
+	@r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
 	@no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
 	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
@@ -266,8 +282,8 @@ class GameWindow < Gosu::Window
 		@start=@ping+200
 		@text=text
 		@stars = Array.new
-		7.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
-		55.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		$NB_PLANET.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
+		$NB_STAR.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
 		@player.restart
 	end
 	def pending?(d=0) (@start+d > @ping) end
