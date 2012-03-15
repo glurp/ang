@@ -22,7 +22,7 @@ $NB_STAR=55
 $RANGE_STAR_SIZE=(20..50) # more planet / bigger planets ==>> harder game!
 $NB_PLANET=5
 #######################################################
-
+ 
 require 'rubygems'
 require 'gosu'
 
