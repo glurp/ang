@@ -18,9 +18,12 @@ KK=0.5
 SX=1280/KK # window size width
 SY=900/KK  #             height
 $INITIALE_SCORE=2000
-$NB_STAR=55
-$RANGE_STAR_SIZE=(20..50) # more planet / bigger planets ==>> harder game!
-$NB_PLANET=5
+$NB_STAR=85
+$NB_PLANET=15
+$RANGE_STAR_SIZE=(10..30) # more planet / bigger planets ==>> harder game!
+$SCALE_PLAYER=0.8
+$SIZE_TANK=5
+$DD=false
 #######################################################
  
 require 'rubygems'
@@ -41,17 +44,20 @@ class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ;
 
 # pseudo newton
 def newton_xy1(p1,p2,a,b)
- k=1.0/40000
+ k1=1.0/200
+ k2=1.0/300000
  dx,dy=[a.x-b.x,a.y-b.y]
  d=Math::sqrt(dx ** 2 + dy ** 2)
- #f=(k*p1*p2/(d*d)).minmax(100)
- f=(k*p1*p2/(d)).minmax(100)
+ f1=(k1*p1*p2/(d*d)).minmax(100)
+ f2=(k2*p1*p2/(d)).minmax(100)
  teta=Math.atan2(dy,dx)   
+ f=(f2<f1) ? f1 : f2
+ $DD=true if (f2>f1)
  r=[-f*Math.cos(teta),-f*Math.sin(teta)]
  r
 end
 
-# newton, with  'amrtissement'
+# newton, with  'amortissement'
 def newton_xy(p1,p2,a,b,k=1.0/300,dmin=10,dmax=10000)
  dx,dy=[a.x-b.x,a.y-b.y]
  d=dmin+Math::sqrt(dx ** 2 + dy ** 2)
@@ -109,8 +115,8 @@ class Player
   def accelerate(s)
     @pos= s ? 0 : 2
     @score-=3
-    @vel_x += Gosu::offset_x(@angle, s ? 0.1 : -0.1)
-    @vel_y += Gosu::offset_y(@angle, s ? 0.1 : -0.1)
+    @vel_x += 0.7*Gosu::offset_x(@angle, s ? 0.1 : -0.1)
+    @vel_y += 0.7*Gosu::offset_y(@angle, s ? 0.1 : -0.1)
   end
   
   def move(stars)
@@ -152,7 +158,7 @@ class Player
 
   def draw(app,stars)
 	img = @animation[@pos]
-	img.draw_rot(@x, @y, ZOrder::Player, @angle)
+	img.draw_rot(@x, @y, ZOrder::Player, @angle, 0.5, 0.5, $SCALE_PLAYER,$SCALE_PLAYER)
     x,y=newton(stars) ; app.draw_line(@x,@y, 0xffffffff,@x+x*1000,@y+y*1000,0xffffffff)  # debug: mark gravity force
 	if app.pending?
 		@lxy.each_cons(2) { |p0,p1| app.draw_line(p0[0],p0[1], 0xffffff00 ,p1[0],p1[1], 0xffffff00 ) if p1} rescue nil
@@ -211,8 +217,8 @@ class Star
     @animation = animation
 	@ls=ls
 	@type=type
-	@r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
-	@no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
+	@r=@type ? $SIZE_TANK : $RANGE_STAR_SIZE.rand() 
+	@no_img= type ? 1 : (rand()>0.5 && (@r>($RANGE_STAR_SIZE.max+$RANGE_STAR_SIZE.max)/2)) ? 0 : (rand(3)+2)
 	@rot=rand(180)
 	@color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
@@ -269,8 +275,8 @@ class GameWindow < Gosu::Window
 
 	######################## Game global state 
 	
-	def looser() ego("Loose") end
-	def winner(n) ego("Winne #{n}") end
+	def looser() ego("Game Over !") end
+	def winner(n) ego("Wiiiinner #{n}") end
 	def ego(text)
 		return if @ping < @start
 	    puts "ego #{text}"
@@ -323,6 +329,7 @@ class GameWindow < Gosu::Window
 	######################## Global draw : update()/draw() are invoked continuously by Gosu engine
 	
 	def update
+		$DD=false
 		@ping+=1
 		@player.clear()
 		@stars.each { |star| star.move(self,@player,@stars) }
@@ -359,6 +366,8 @@ class GameWindow < Gosu::Window
 			
 			#------------ textual energie reserve level
 			@font.draw("Score: #{@player.score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			draw_quad(20, 20, 0xFFFF00FF, 40, 20,  0xFFFF00FF, 40, 40,  0xFFFF00FF, 20 , 40 , 0xFFFF00FF) if  $DD
+
 		end
 	end
 end
