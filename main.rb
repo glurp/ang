@@ -18,8 +18,8 @@ KK=0.5
 SX=1280/KK # window size width
 SY=900/KK  #             height
 $INITIALE_SCORE=2000
-$NB_STAR=85
-$NB_PLANET=15
+$NB_STAR=35
+$NB_PLANET=8
 $RANGE_STAR_SIZE=(10..30) # more planet / bigger planets ==>> harder game!
 $SCALE_PLAYER=0.8
 $SIZE_TANK=5
@@ -44,8 +44,8 @@ class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ;
 
 # pseudo newton
 def newton_xy1(p1,p2,a,b)
- k1=1.0/200
- k2=1.0/300000
+ k1=1.5/200
+ k2=1.0/30000
  dx,dy=[a.x-b.x,a.y-b.y]
  d=Math::sqrt(dx ** 2 + dy ** 2)
  f1=(k1*p1*p2/(d*d)).minmax(100)
