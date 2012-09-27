@@ -18,8 +18,8 @@ KK=0.5
 SX=1280/KK # window size width
 SY=900/KK  #             height
 $INITIALE_SCORE=2000
-$NB_STAR=85
-$NB_PLANET=15
+$NB_STAR=55
+$NB_PLANET=8
 $RANGE_STAR_SIZE=(10..30) # more planet / bigger planets ==>> harder game!
 $SCALE_PLAYER=0.8
 $SIZE_TANK=5
