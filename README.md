@@ -10,6 +10,11 @@ Working, but missing menu, setup, level choice ....
 
 Free to use, modify and distribute.
 
+News : in net diretory, begining ang on multi-player
+
+* multicast between all member on LAN
+* not ready ! fro naow, only play all ship on all game instance
+
 Inspiration
 ===========
 
