@@ -7,6 +7,7 @@ class Star
   
   def initialize(ls,type,animation)
     @animation = animation
+	@index=ls.size
 	@ls=ls
 	@type=type
 	@r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
@@ -18,8 +19,11 @@ class Star
     @color.blue =  type ? 0   : 200
     @x = (SX/5..(SX-SX/5)).rand
     @y = (SY/5..(SY-SY/5)).rand
-  end
-
+    #@x = (index % 10) * (SX/10)
+    #@y = (index / 10) * (SY/10)
+	end
+  def index() @index end
+  
   ########### Net
 
   def self.create(anim,no_img,r,rot)
@@ -37,10 +41,10 @@ class Star
   def update(x,y)  @x,@y=x,y end
   
   def get_pos()
-	[@x.to_i,@y.to_i,@no_img]
+	[@x.to_i,@y.to_i,@type,@index,@no_img]
   end
   def set_pos(pos)
-    @x,@y,@no_img=pos
+    @x,@y,@type,@index,@no_img=*pos
   end
   ####### serveur side behavior
   def move(game,ls)
