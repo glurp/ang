@@ -32,9 +32,7 @@ Done:
 * keyboard textual input are sending/display on all other player
 
 TODO:
-* global score
-* a game with start, end, score
-* list of current players
+* display list of current players, with name
 
 
 Inspiration
