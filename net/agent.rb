@@ -1,22 +1,21 @@
 # Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com>
 ###########################################################################
-#   ANG.RB : planetoide game
+#   agent.rb : planetoide game multi player
 #--------------------------------------------------------------------------
 # install ruby
 # install Gosu	> gem install gosu
-# download this > git http://github.com/rdaubarede/ang.git
-# run			> ruby main.rb
-# do your own version :
-#      > loop { edit/main.rb ; ruby main.rb }
-# make your disribution :
-#      > ocra main.rb
-#
+# download this > gem install ang
+# run			> angm
 ###########################################################################
 require 'thread'
 require 'timeout'
-require 'gosu'
-require 'zmq'
-
+begin
+	require 'gosu'
+rescue Exception => e
+	puts "Not completly installed !\nPlease do : \n> gem install gosu"
+	sleep(3)
+	exit(0)
+end
 
 
 ##################### Tuning ##########################
@@ -29,13 +28,15 @@ SY=900 / KK  #             height
 $INITIALE_SCORE=2000
 $NB_STAR=55
 $RANGE_STAR_SIZE=(20..40) # more planet / bigger planets ==>> harder game!
+$NET_TRANSMIT=100
 $NB_PLANET=3
-
+$NB_PL=$NB_STAR+$NB_PLANET
 #######################################################
  
 
 
 $id=((Time.now.to_f*1000).to_i)* 100 + rand(100)
+sleep(0.01*($id%100))
 Thread.abort_on_exception=true
 
 STDOUT.sync=true
@@ -54,14 +55,16 @@ require_relative 'player.rb'
 
 class GameWindow < Gosu::Window
   attr_reader :star,:ping
-  def init_player(id)
-    player = Player.new(self,@player_anim,false)    
-    player.warp(320, 240)
-    @players[id]=player
-  end
-  def del_player(id) @players.delete(id) end
   def initialize
     super((SX*KKI).to_i, (SY*KKI).to_i, false)
+	@kbcars=Gosu.constants.collect(&:to_s).grep(/^Kb\w$/).map {|k|  Gosu.const_get(k)} +
+	  [Gosu::KbSpace,Gosu::KbReturn,Gosu::KbSpace]
+	  
+	@text_field =  Gosu::TextInput.new()
+	@text_field.text = "Input..."
+	self.text_input=@text_field
+	@comment=""
+	
     self.caption = "Gosu Tutorial Game"
 	@player_anim=  Gosu::Image::load_tiles(self, "Starfighter.bmp", 50,50, false)
     
@@ -75,16 +78,25 @@ class GameWindow < Gosu::Window
     @font2 = Gosu::Font.new(self, Gosu::default_font_name, (40/KK).round)
 
     @star_anim = Gosu::Image::load_tiles(self, "Star.bmp", 100,100, false)
+	
 	@ping=0
 	@start=0
 	@mouse=nil
     self.go("Start")
+	NetClient.init(self)
+	Thread.new {
+		sleep 3
+		if @players.size>0
+			master=@players.keys.sort.first
+			NetClient.connect()  if master<$id
+		end
+	}
   end
 
 	######################## Game global state 
 	
-	def looser() ego("Lose") end
-	def winner(n) ego("Winner #{n}") end
+	def looser() ego("Game Over") end
+	def winner(n) ego("Sucess, Very good #{n}") end
 	def ego(text)
 		return if @ping < @start
 	    puts "ego #{text}"
@@ -99,49 +111,46 @@ class GameWindow < Gosu::Window
 		@player.restart
 		$NB_PLANET.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		$NB_STAR.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
-		NetClient.init(self)
 	end
 	def pending?(d=0) (@start+d > @ping) end
 
 	def send_positions(id)
-		puts "send stars to #{id}"
 		stars=@stars.map { |s| s.get_pos() }
-		p [id,stars]
 		NetClient.send_position([id,stars])
 	end
 	def	get_positions(id,data)
 	    id_dest,stars=data
-		puts "get pos for #{id} / #{$id}"
 		if id_dest==$id
 			stars.zip(@stars) { |pos,star| star.set_pos(pos) }
 		end
 	end
 	
+	def star_deleted(index)
+		@stars.delete_if { |star| star.index() == index}
+	end
+	
+	def init_player(id)
+		player = Player.new(self,@player_anim,false)    
+		player.warp(320, 240)
+		@players[id]=player
+	end
+	def del_player(id) @players.delete(id) end
 	######################## Global interactions  : mouse/keyboard
 	
 	########### Server+client
 	
 	def interactions_net()
-		@players.each { |id,p| p.move(@stars) }
 	end
 	def update_payers(id,data) 
 		if @players[id]
+			@players[id].update_by_net(data) 
+		else
+			init_player(id)
 			@players[id].update_by_net(data) 
 		end
 	end
 
 	########### client
-	
-	def update_star(id,type,pos) 
-		i=id.to_i
-		if @stars.size<=i
-			while @stars.size<=i
-				@stars<< Star.new([],type,@star_anim)
-			end
-			@stars[i].reinit(*type)
-		end
-		@stars[i].update(*pos)
-	end
 	
 	def button_down(id)
 		if id == Gosu::KbEscape
@@ -155,6 +164,9 @@ class GameWindow < Gosu::Window
 		(@player.turn_right;k=Gosu::KbRight)      if button_down? Gosu::KbRight      or button_down? Gosu::GpRight
 		(@player.accelerate(true);k=Gosu::KbUp)   if button_down? Gosu::KbUp   or button_down? Gosu::GpButton0
 		(@player.accelerate(false);k=Gosu::KbDown)if button_down? Gosu::KbDown or button_down? Gosu::GpButton1
+		if k==nil
+			@kbcars
+		end
 	end
 	
 	######################## Global draw : update()/draw() are invoked continuously by Gosu engine
@@ -162,16 +174,14 @@ class GameWindow < Gosu::Window
 	def update()
 		@ping+=1
 		@player.clear() 
-		
+		NetClient.event_invoke()		
+		@players.each { |id,pl| pl.move(@stars) }
 		@stars.each { |star| star.move(self,@stars) }
 		return if @ping<@start
-		
-		interactions_net()
-		interactions_client() 
-		@players.each { |id,p| 
-			p.move(@stars) ; p.collect_stars(@stars) 
-		} 
-		@player.move(@stars) 
+
+		interactions_client() #unless NetClient.is_master
+		@player.move(@stars)  #unless NetClient.is_master
+		@player.collect_stars(@stars) 
 	end
 	
 	def draw
@@ -202,7 +212,27 @@ class GameWindow < Gosu::Window
 			
 			#------------ textual energie reserve level
 			@font.draw("Score: #{@player.score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			#------------ is Master
+			if NetClient.is_master
+				@font.draw("Master", 25/KK, 20/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			end
+			#----------------- Input
+			if @comment.size>0
+				@font.draw(@comment, 3*SX/4, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
+			end
+			s=@text_field.text
+			if s && s.size>0
+				if s =~/\.$/
+					@text_field.text=""
+					NetClient.comment(s[0..-1])
+				end
+				@font.draw("Input (end with '.') : "+ s , SX/4, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
+			end
 		end
+	end
+	def display_comment(text)
+		@comment=text
+		Thread.new { sleep 4; @comment="" }
 	end
 end
 
