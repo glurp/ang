@@ -1,9 +1,11 @@
+# Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com>
 ###########################################################################
 #   reseau partage ANG
 ###########################################################################
 require "socket"
 require "thread"
 require "ipaddr"
+require "zlib"
 
 
 ################ Net manager : multicast member, send to all, receive from any ##############
@@ -33,7 +35,7 @@ class NetClient
 					@game.init_player(id)
 					@game.send_positions(id) 
 				when "positions"
-					@game.get_positions(id,bdata) 
+					@game.get_positions(id,bdata) if id < $id
 				when "alive"
 				when "quit"
 					@game.del_player(id)
@@ -82,6 +84,13 @@ class MCast
 
   def send(n,content)
     message = content.inspect
+	if message.size>1024
+		message= "#" +  Zlib::Deflate.new(9).deflate(message, Zlib::FINISH)
+		if message.size>1024
+			puts "message size too big!"
+			return
+		end
+	end
     socket.send(message, 0, MULTICAST_ADDR, PORT)
 	(n-1).times { sleep(0.02); socket.send(message, 0, MULTICAST_ADDR, PORT) }
   end
@@ -94,6 +103,12 @@ class MCast
     Thread.new do
       loop do
         message, x = socket.recvfrom(1024)
+		if message[0,1]=="#"
+			zstream = Zlib::Inflate.new
+			message = zstream.inflate(message[1..-1])
+			zstream.finish
+			zstream.close
+		end
 		@client.receive_data(message)
       end
     end
