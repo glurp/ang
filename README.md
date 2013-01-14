@@ -13,8 +13,12 @@ Free to use, modify and distribute.
 
 * multicast between all member on LAN
 * not ready ! fro naow, only play all ship on all game instance
+
+
 Multi gamer
 ===========
+
+
 News : in net directory, begining a ang version  multi-player on local network,
 use Multicast (so work only on LAN).
 The game : same as ang, but all players must collaborate for destroy a 
