@@ -25,11 +25,11 @@ KKI= KK / 2
 SX=1280 / KK # window size width
 SY=900 / KK  #             height
 
-$INITIALE_SCORE=2000
+$INITIALE_SCORE=100
 $NB_STAR=55
-$RANGE_STAR_SIZE=(20..40) # more planet / bigger planets ==>> harder game!
+$RANGE_STAR_SIZE=(30..60) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=100
-$NB_PLANET=3
+$NB_PLANET=7
 $NB_PL=$NB_STAR+$NB_PLANET
 #######################################################
  
@@ -94,25 +94,40 @@ class GameWindow < Gosu::Window
   end
 
 	######################## Game global state 
-	
-	def looser() ego("Game Over") end
-	def winner(n) ego("Sucess, Very good #{n}") end
 	def ego(text)
 		return if @ping < @start
-	    puts "ego #{text}"
 		@text=text
 		@start=@ping+200
-		Thread.new { sleep 2 ; self.go("Start") }
+		Thread.new { sleep 2 ; self.go("Start...") }
 	end
 	def go(text)
 		@start=@ping+200
 		@text=text
 		@stars = Array.new
 		@player.restart
+		@global_score=0
+		@touch={}
 		$NB_PLANET.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		$NB_STAR.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		NetClient.connect()  if @players.size==0 && text=~ /\.\.\./  
 	end
 	def pending?(d=0) (@start+d > @ping) end
+	
+	def finish()
+		ego("Game Over...")
+	end
+	def looser() ego("Game Over") end
+	def winner(n) 
+		return unless NetClient.is_master 
+		NetClient.send_success() 
+		ego("Success, Very good")  
+	end
+	def receive_success(id)
+		ego("Success, Very good")  
+	end
+	def receive_echec(id)
+		ego("Game over")  
+	end
 
 	def send_positions(id)
 		stars=@stars.map { |s| s.get_pos() }
@@ -139,10 +154,9 @@ class GameWindow < Gosu::Window
 	
 	########### Server+client
 	
-	def interactions_net()
-	end
 	def update_payers(id,data) 
 		if @players[id]
+			@touch.delete(id) if @touch[id]
 			@players[id].update_by_net(data) 
 		else
 			init_player(id)
@@ -168,20 +182,29 @@ class GameWindow < Gosu::Window
 			@kbcars
 		end
 	end
-	
+	def watchdog()
+		t=false
+		@touch.keys.each  { |id| (t=true; @players.delete(id)) if @players[id] }
+		NetClient.reinit_master(@players.keys) if t
+		@players.keys.each { |id| @touch[id]=true }
+	end
 	######################## Global draw : update()/draw() are invoked continuously by Gosu engine
 	
 	def update()
 		@ping+=1
+		watchdog() if @ping%60==0
 		@player.clear() 
 		NetClient.event_invoke()		
-		@players.each { |id,pl| pl.move(@stars) }
+		@players.each { |id,pl| pl.move(@stars) } if @player.score>0
 		@stars.each { |star| star.move(self,@stars) }
 		return if @ping<@start
-
-		interactions_client() #unless NetClient.is_master
-		@player.move(@stars)  #unless NetClient.is_master
-		@player.collect_stars(@stars) 
+		if @player.score>0
+			interactions_client()
+			@player.move(@stars)
+			@player.collect_stars(@stars)
+		end
+		@global_score=@player.score+@players.values.inject(0) { |sum,pl| (sum+pl.score) }
+		winner(@global_score) if 0 == (@stars.select { |s| s.type }.size )
 	end
 	
 	def draw
@@ -209,9 +232,19 @@ class GameWindow < Gosu::Window
 			#----------- barr graph energies reserve level
 			h=5+(@player.score/2000.0)*(SY-10)
 			draw_quad(5, 5, 0xBB55FF55, 20/KK, 5,  0xBB55FF55, 20/KK, h,  0xBBFFFF55, 5 , h , 0xBBFFFF55)
+			i=2
+			@players.each { |id,player| 
+				h=5+(player.score/2000.0)*(SY-10)
+				draw_quad(
+						20/KK*i    , 5, 0xBB55FF55, 
+						20/KK*(i+1), 5,  0xBB55FF55, 
+						20/KK*(i+1), h,  0xBBFF9090+i*0x1010, 
+						20/KK*i    , h , 0xBBFF9090+i*0x1010)
+				i+=1
+			}			
 			
 			#------------ textual energie reserve level
-			@font.draw("Score: #{@player.score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			@font.draw("Global Score: #{@global_score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
 			#------------ is Master
 			if NetClient.is_master
 				@font.draw("Master", 25/KK, 20/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
