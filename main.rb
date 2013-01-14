@@ -1,3 +1,4 @@
+# Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com># LGPL
 ###########################################################################
 #   ANG.RB : planetoide game
 #--------------------------------------------------------------------------
