@@ -65,7 +65,7 @@ class Player
 		@y += @vel_y
 		n=Time.now.to_f*1000
 		delta=n-@now
-		if delta>300
+		if delta >= $NET_TRANSMIT
 			@top+=1
 			NetClient.player_is_moving([@top,n,[@x,@y],[@vel_x,@vel_y],[vx,vy],[@angle,@vangle]])
 			@now=n
@@ -85,7 +85,7 @@ class Player
 	return if top<=@top
 	@top=top
 	
-	puts  "delta #{Time.now.to_f*1000-t} ms"
+	#puts  "delta #{Time.now.to_f*1000-t} ms"
 	
 	@x,@y=(pos[0]+@x)/2,(pos[1]+@y)/2
 	@vel_x,@vel_y=vel[0]/2,vel[1]/2
@@ -120,14 +120,15 @@ class Player
   
   def collect_stars(stars)
     stars.reject!  do |star|
-	  next if star.x-@x > 200
-	  next if star.x-@x < -200
-	  next if star.y-@y > 200
-	  next if star.y-@y < -200
+	  next(false) if star.x-@x > 200
+	  next(false) if star.x-@x < -200
+	  next(false) if star.y-@y > 200
+	  next(false) if star.y-@y < -200
 
       if Gosu::distance(@x, @y, star.x, star.y) < (15+star.r) then
 		if star.type
 			@score += 120
+			NetClient.star_deleted(star.index)
 			true
 		else
 			if @vel_x !=0 || @vel_y!=0			
