@@ -1,4 +1,6 @@
-5.2
+6.1
+    README.md : s
+6.0 : 2013-01-14 17:49:09 +0100
     star.rb : index
     player.rb : reglages
     net.rb : comments send/received
