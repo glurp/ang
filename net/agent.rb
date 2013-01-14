@@ -21,7 +21,7 @@ end
 ##################### Tuning ##########################
 
 KK= 0.5 
-KKI= KK / 2
+KKI= KK / 1
 SX=1280 / KK # window size width
 SY=900 / KK  #             height
 
@@ -94,11 +94,15 @@ class GameWindow < Gosu::Window
   end
 
 	######################## Game global state 
+	def egow(text)
+		@text=text
+		@start=@ping+20000
+	end
 	def ego(text)
 		return if @ping < @start
 		@text=text
 		@start=@ping+200
-		Thread.new { sleep 2 ; self.go("Start...") }
+		Thread.new { sleep 4 ; self.go("Start...") }
 	end
 	def go(text)
 		@start=@ping+200
@@ -114,9 +118,9 @@ class GameWindow < Gosu::Window
 	def pending?(d=0) (@start+d > @ping) end
 	
 	def finish()
-		ego("Game Over...")
+		egow("Game Over...")
 	end
-	def looser() ego("Game Over") end
+	def looser() egow("Game Over") end
 	def winner(n) 
 		return unless NetClient.is_master 
 		NetClient.send_success() 
@@ -126,7 +130,7 @@ class GameWindow < Gosu::Window
 		ego("Success, Very good")  
 	end
 	def receive_echec(id)
-		ego("Game over")  
+		ego("Game over...")  
 	end
 
 	def send_positions(id)
