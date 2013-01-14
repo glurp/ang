@@ -22,6 +22,9 @@ class NetClient
 			Thread.new { dispatch() }
 		end
 		def is_master() @is_master end
+		def reinit_master(lid) 
+			@is_master=true unless lid.any? {|id| id<$id}
+		end
 		# invoked by MCast, data is string (ruby literal)
 		# ["move",id,time,[x,y],[vx,vy],[a,va]]
 		def receive_data(data)
@@ -46,6 +49,10 @@ class NetClient
 				when "connect"
 					@game.init_player(id)
 					@game.send_positions(id) 
+				when "success"
+					@game.receive_success(id)
+				when "echec"
+					@game.receive_echec(id)
 				when "positions"
 					@game.get_positions(id,bdata) if id < $id
 				when "star_delete"
@@ -61,32 +68,24 @@ class NetClient
 			end
 		end
 		def dispatch()
-			@mcast.send(1,["connect",$id])
+			@mcast.send_message(1,["connect",$id])
 			loop do
 				begin
 						m=@queue.pop
 						#log "#{$id} send to serveur : ",m
-						@mcast.send(1,m) 
+						@mcast.send_message(1,m) 
 				rescue Exception => e
 					puts e.to_s + "\n  "+ e.backtrace.join("\n  ")
 				end
 			end
 		end
-		def connect()
-			@mcast.send(1,["connect",$id])
-		end
-		def player_is_moving(data)
-			@queue.push(["move",$id,*data])
-		end
-		def send_position(data)
-			@queue.push(["positions",$id,*data])
-		end
-		def star_deleted(index)
-			@queue.push(["star_delete",$id,index])
-		end
-		def comment(text)
-			@queue.push(["comment",$id,text])
-		end
+		def connect() 			@mcast.send_message(1,["connect",$id])	end
+		def player_is_moving(data) 	@queue.push(["move",$id,*data]) 	end
+		def send_success() 			@queue.push(["success",$id])		end
+		def send_echec() 			@queue.push(["echec",$id]) 			end
+		def send_position(data)		@queue.push(["positions",$id,*data]) end
+		def star_deleted(index) 	@queue.push(["star_delete",$id,index]) end
+		def comment(text)			@queue.push(["comment",$id,text]) 	end
 		def is_stoping()
 			@queue.pop while (@queue.size>2)
 			@queue.push(["quit",$id])
@@ -107,7 +106,7 @@ class MCast
 	listen()
   end
 
-  def send(n,content)
+  def send_message(n,content)
     message = content.inspect
 	if message.size>1024
 		message= "#" +  Zlib::Deflate.new(9).deflate(message, Zlib::FINISH)
