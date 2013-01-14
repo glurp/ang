@@ -10,10 +10,32 @@ Working, but missing menu, setup, level choice ....
 
 Free to use, modify and distribute.
 
-News : in net diretory, begining ang on multi-player
 
 * multicast between all member on LAN
 * not ready ! fro naow, only play all ship on all game instance
+Multi gamer
+===========
+News : in net directory, begining a ang version  multi-player on local network,
+use Multicast (so work only on LAN).
+The game : same as ang, but all players must collaborate for destroy a 
+maximum of stars.
+
+Usage:
+  > angm
+
+Done:
+
+* auto disovery of player, first player present is the 'master'
+* send mastr current configuratin to all new player
+* player position/speed/accelerations are replicates on each other players
+* star destruction are replicate
+* keyboard textual input are sending/display on all other player
+
+TODO:
+* global score
+* a game with start, end, score
+* list of current players
+
 
 Inspiration
 ===========
