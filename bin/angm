@@ -1,0 +1,5 @@
+#!/usr/bin/ruby
+require 'gosu'
+
+Dir.chdir(File.dirname(__FILE__)+"/../net")
+load 'agent.rb'
