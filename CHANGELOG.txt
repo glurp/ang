@@ -1,4 +1,6 @@
-6.2
+7.1
+    agent.rb : scare init
+7.0 : 2013-01-15 00:00:48 +0100
     star.rb : send planetoid rayon
     player.rb : plyer
     net.rb : is_master reinitialisation
