@@ -25,7 +25,7 @@ KKI= KK / 2
 SX=1280 / KK # window size width
 SY=900 / KK  #             height
 
-$INITIALE_SCORE=100
+$INITIALE_SCORE=2000
 $NB_STAR=55
 $RANGE_STAR_SIZE=(30..60) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=100
