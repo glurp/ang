@@ -67,7 +67,7 @@ class Player
 		delta=n-@now
 		if delta >= $NET_TRANSMIT
 			@top+=1
-			NetClient.player_is_moving([@top,n,[@x,@y],[@vel_x,@vel_y],[vx,vy],[@angle,@vangle]])
+			NetClient.player_is_moving([@top,n,[@x,@y],[@vel_x,@vel_y],[vx,vy],[@angle,@vangle],@score])
 			@now=n
 		end
 	else
@@ -81,7 +81,7 @@ class Player
 	end
   end
   def update_by_net(data) 
-    top,t,pos,vel,acc,ang=*data
+    top,t,pos,vel,acc,ang,@score=*data
 	return if top<=@top
 	@top=top
 	
@@ -149,8 +149,7 @@ class Player
 		false
       end
     end
-	@app.looser if @score<=0
-	@app.winner(@score) if 0 == (stars.select { |s| s.type }.size )
+	@app.finish if @score<=0
   end
   
 end
