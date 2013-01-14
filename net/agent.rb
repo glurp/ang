@@ -1,3 +1,4 @@
+# Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com>
 ###########################################################################
 #   ANG.RB : planetoide game
 #--------------------------------------------------------------------------
@@ -98,6 +99,7 @@ class GameWindow < Gosu::Window
 		@player.restart
 		$NB_PLANET.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		$NB_STAR.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
+		NetClient.init(self)
 	end
 	def pending?(d=0) (@start+d > @ping) end
 
@@ -204,6 +206,5 @@ class GameWindow < Gosu::Window
 	end
 end
 
-$game=GameWindow.new
-NetClient.init($game) 
+$game=GameWindow.new 
 $game.show
