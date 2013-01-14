@@ -1,23 +1,27 @@
 # Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com>
 ###########################################################################
-#   reseau partage ANG
+#   reseau sharing for ANG
+#    NetClient: singleton inteface main <=> net
+#    MCast : multicasting encapsulation
 ###########################################################################
-require "socket"
 require "thread"
+require "socket"
 require "ipaddr"
-require "zlib"
-
+require "zlib"	# if message is too big for a datagram, zip it
+(puts "ruby version must be 1.9.3 or best (patched for multicast)";exit(1)) if RUBY_VERSION < "1.9.3"
 
 ################ Net manager : multicast member, send to all, receive from any ##############
 class NetClient
 	class << self
 		def init(game) 
 		    @is_master=true
+			@event_stack = Queue.new
 			@players,@players_ip,@game={},{},game
 			@queue= Queue.new
 			@mcast=MCast.new(self)
 			Thread.new { dispatch() }
 		end
+		def is_master() @is_master end
 		# invoked by MCast, data is string (ruby literal)
 		# ["move",id,time,[x,y],[vx,vy],[a,va]]
 		def receive_data(data)
@@ -27,7 +31,15 @@ class NetClient
 				code,id,*bdata=bdata
 				return if id==$id
 				@is_master=false if id<$id 
-				#puts  "#{$id} recieve : #{data}"
+				puts  "#{$id} recieve from #{id} : #{data[0..100]}" if code!="move" && code!="star_delete"
+				@event_stack << [code,id,bdata]
+			end
+		end
+		# event recived by multicast, are evaluated here, 
+		# event_invoke() must be called in main thread loop
+		def event_invoke()
+			while @event_stack.size>0
+				code,id,bdata=*(@event_stack.pop)
 				case code
 				when "move"
 					@game.update_payers(id,bdata)
@@ -36,11 +48,15 @@ class NetClient
 					@game.send_positions(id) 
 				when "positions"
 					@game.get_positions(id,bdata) if id < $id
+				when "star_delete"
+					@game.star_deleted(bdata[0])
+				when "comment"
+					@game.display_comment(bdata[0])
 				when "alive"
 				when "quit"
 					@game.del_player(id)
 				else
-					puts "recieved unknown message #{data}"
+					puts "recieved unknown message #{[code,id,data].join(", ")}"
 				end
 			end
 		end
@@ -56,11 +72,20 @@ class NetClient
 				end
 			end
 		end
+		def connect()
+			@mcast.send(1,["connect",$id])
+		end
 		def player_is_moving(data)
 			@queue.push(["move",$id,*data])
 		end
 		def send_position(data)
 			@queue.push(["positions",$id,*data])
+		end
+		def star_deleted(index)
+			@queue.push(["star_delete",$id,index])
+		end
+		def comment(text)
+			@queue.push(["comment",$id,text])
 		end
 		def is_stoping()
 			@queue.pop while (@queue.size>2)
@@ -87,7 +112,7 @@ class MCast
 	if message.size>1024
 		message= "#" +  Zlib::Deflate.new(9).deflate(message, Zlib::FINISH)
 		if message.size>1024
-			puts "message size too big!"
+			puts "message size too big for a datagram !"
 			return
 		end
 	end
