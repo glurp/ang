@@ -1,3 +1,9 @@
+5.2
+    star.rb : index
+    player.rb : reglages
+    net.rb : comments send/received
+    agent.rb : comment distributed
+    README.md : update for multiplayer
     star.rb : license
     player.rb : license
     net.rb : license
