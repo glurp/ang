@@ -1,4 +1,9 @@
-6.1
+6.2
+    star.rb : send planetoid rayon
+    player.rb : plyer
+    net.rb : is_master reinitialisation
+    agent.rb : multiplayer start/end
+    README.md : multiplayer status
     README.md : s
 6.0 : 2013-01-14 17:49:09 +0100
     star.rb : index
