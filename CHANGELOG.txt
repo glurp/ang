@@ -1,4 +1,7 @@
-8.1
+9.1.1
+    ang.gemspec : add angm to executables
+    VERSION : to 3 number
+9.0 : 2013-01-15 00:16:53 +0100
     agent.rb : ending game
 8.0 : 2013-01-15 00:02:08 +0100
     agent.rb : scare init
