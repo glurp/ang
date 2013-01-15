@@ -96,7 +96,7 @@ end
 
 
 class MCast
-  MULTICAST_ADDR = "224.6.8.11"
+  MULTICAST_ADDR = "224.6.1.89"
   BIND_ADDR = "0.0.0.0"
   PORT = 6811
 
@@ -122,7 +122,7 @@ class MCast
   private
 
   def listen
-    socket.bind(BIND_ADDR, PORT)
+    socket.bind(BIND_ADDR, PORT) rescue nil
 
     Thread.new do
       loop do
@@ -142,14 +142,22 @@ class MCast
   def socket
     @socket ||= UDPSocket.open.tap do |socket|
 	  begin
-      socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, bind_address)
-      socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_TTL, 1)
-      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1) rescue nil
-      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEPORT, 1) rescue nil
+		  socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1) rescue nil
+		  socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEPORT, 1) rescue nil
+
+		  ctx="bind()"		  
+		  socket.bind(BIND_ADDR, PORT) if RUBY_PLATFORM =~ /(win|w)32$/  # for winxp
+		  
+		  ctx="IP_ADD_MEMBERSHIP"
+		  socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, bind_address)
+		  ctx="IP_MULTICAST_TTL"
+		  socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_TTL, 1)
 	  rescue Exception => e
 		puts "******************************************"
-		puts "Multicast seem problematic on your system
+		puts "Multicast seem problematic on your system :"
+		puts "   in #{ctx} :   #{$!.to_s}"
 		puts "Did you have installed last version of Ruby (1.9.3p362 is ok)"
+		puts "Or your network is deconnected..."
 		puts "******************************************"
 		sleep 5
 		exit(1)
