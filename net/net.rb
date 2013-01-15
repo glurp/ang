@@ -141,10 +141,19 @@ class MCast
 
   def socket
     @socket ||= UDPSocket.open.tap do |socket|
+	  begin
       socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, bind_address)
       socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_MULTICAST_TTL, 1)
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1) rescue nil
       socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEPORT, 1) rescue nil
+	  rescue Exception => e
+		puts "******************************************"
+		puts "Multicast seem problematic on your system
+		puts "Did you have installed last version of Ruby (1.9.3p362 is ok)"
+		puts "******************************************"
+		sleep 5
+		exit(1)
+	  end
     end
   end
 
