@@ -17,7 +17,7 @@ EEND
 	]
   
   s.files         = Dir['**/*']
-  s.executables   = ["ang"]
+  s.executables   = ["ang","angm"]
   s.bindir		  = "bin"
   
   
