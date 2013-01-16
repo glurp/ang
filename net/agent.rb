@@ -27,7 +27,7 @@ SY=900 / KK  #             height
 
 $INITIALE_SCORE=2000
 $NB_STAR=55
-$RANGE_STAR_SIZE=(20..50) # more planet / bigger planets ==>> harder game!
+$RANGE_STAR_SIZE=(10..40) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=100
 $NB_PLANET=6
 $NB_PL=$NB_STAR+$NB_PLANET
@@ -209,7 +209,7 @@ class GameWindow < Gosu::Window
 		return if @ping<@start
 		if @player.score>0
 			interactions_client()
-			@player.move(@stars)
+			@player.move(@stars,Time.now.to_f)
 			@player.collect_stars(@stars)
 		end
 		@global_score=@player.score+@players.values.inject(0) { |sum,pl| (sum+pl.score) }
