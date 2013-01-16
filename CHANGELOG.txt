@@ -1,16 +1,14 @@
-9.9.2
-    README.md : ipdate todo
+    README.md : Update todo
     VERSION : n
 9.9.0 : 2013-01-16 17:28:28 +0100
-    README.md : avencement multiplayer
+    README.md : avancement multiplayer
 9.8.0 : 2013-01-16 13:00:55 +0100
-    agent.rb : correct
+    agent.rb : corrections
 9.7.0 : 2013-01-16 12:54:52 +0100
-    tools.rb : newten more smooth
-    star.rb : initiale position larger
-    player.rb : gavity more smooth
+    tools.rb : newton more smooth
+    star.rb : initial position stronger
+    player.rb : gavity k/d**2, more smooth
     agent.rb : reglages
-9.6.0 : 2013-01-16 12:52:56 +0100
 9.5.0 : 2013-01-16 12:19:43 +0100
     agent.rb : game easyer
 9.4.0 : 2013-01-15 21:48:10 +0100
