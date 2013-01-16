@@ -15,7 +15,7 @@ Multi gamer
 ===========
 
 
-News : in net directory, begining a ang version  multi-player on local network,
+In net directory, a ang game, version  multi-player on local network,
 use Multicast (so work only on LAN).
 
 The game : same as ang, but all players must collaborate for destroy a 
@@ -26,12 +26,17 @@ Usage:
 
 Done:
 * auto discovery of player, first player present is the 'master'
-* send master current planet/star configuration to new players
-* player position/speed/accelerations are replicates on each other players
-* star destructions are replicates
-* keyboard textual input are sending/display on all other player
+* Send master current planet/star configuration to new players
+* Player position/speed/accelerations are replicates on each other players
+* Star destructions are replicates
+* Keyboard textual input are sending/display on all other player
+* Multicast for winxp, win 7 ok, with 1.3p362, (Linux to be checked)
 
 TODO:
+* start/end/restart game 
+* introduction, help
+* transmition og game parameter to all (nb star, coefs...), current version need
+  to be exactly identique for each gamer
 * display list of current players, with name
 
 
