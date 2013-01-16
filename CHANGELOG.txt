@@ -1,4 +1,10 @@
-9.4.1
+9.6.1
+    tools.rb : newten more smooth
+    star.rb : initiale position larger
+    player.rb : gavity more smooth
+    agent.rb : reglages
+9.6.0 : 2013-01-16 12:52:56 +0100
+9.5.0 : 2013-01-16 12:19:43 +0100
     agent.rb : game easyer
 9.4.0 : 2013-01-15 21:48:10 +0100
     net.rb : multicasting for win 7 and winxp and multiplayer on same host
