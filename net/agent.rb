@@ -204,12 +204,13 @@ class GameWindow < Gosu::Window
 		watchdog() if @ping%60==0
 		@player.clear() 
 		NetClient.event_invoke()		
-		@players.each { |id,pl| pl.move(@stars) } if @player.score>0
+		now=Time.now.to_f
+		@players.each { |id,pl| pl.move(@stars,now) } if @player.score>0
 		@stars.each { |star| star.move(self,@stars) }
 		return if @ping<@start
 		if @player.score>0
 			interactions_client()
-			@player.move(@stars,Time.now.to_f)
+			@player.move(@stars,now)
 			@player.collect_stars(@stars)
 		end
 		@global_score=@player.score+@players.values.inject(0) { |sum,pl| (sum+pl.score) }
