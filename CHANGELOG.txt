@@ -1,4 +1,6 @@
-9.6.1
+9.7.1
+    agent.rb : correct
+9.7.0 : 2013-01-16 12:54:52 +0100
     tools.rb : newten more smooth
     star.rb : initiale position larger
     player.rb : gavity more smooth
