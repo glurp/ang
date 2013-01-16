@@ -17,8 +17,8 @@ class Star
     @color.red =   type ? 255 : 200
     @color.green = type ? 0   : 200 
     @color.blue =  type ? 0   : 200
-    @x = (SX/5..(SX-SX/5)).rand
-    @y = (SY/5..(SY-SY/5)).rand
+    @x = (SX/7..(SX-SX/7)).rand
+    @y = (SY/7..(SY-SY/7)).rand
     #@x = (index % 10) * (SX/10)
     #@y = (index / 10) * (SY/10)
 	end
