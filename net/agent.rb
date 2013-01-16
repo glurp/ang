@@ -27,9 +27,9 @@ SY=900 / KK  #             height
 
 $INITIALE_SCORE=2000
 $NB_STAR=55
-$RANGE_STAR_SIZE=(30..60) # more planet / bigger planets ==>> harder game!
+$RANGE_STAR_SIZE=(20..50) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=100
-$NB_PLANET=7
+$NB_PLANET=6
 $NB_PL=$NB_STAR+$NB_PLANET
 #######################################################
  
@@ -96,7 +96,8 @@ class GameWindow < Gosu::Window
 	######################## Game global state 
 	def egow(text)
 		@text=text
-		@start=@ping+20000
+		@start=@ping+800
+		go1(text)
 	end
 	def ego(text)
 		return if @ping < @start
@@ -105,8 +106,12 @@ class GameWindow < Gosu::Window
 		Thread.new { sleep 4 ; self.go("Start...") }
 	end
 	def go(text)
+		display_comment "Avaler les points rouges, consommer le moins d'energie possible..."
 		@start=@ping+200
 		@text=text
+		go1(text)
+	end
+	def go1(text)
 		@stars = Array.new
 		@player.restart
 		@global_score=0
@@ -255,7 +260,7 @@ class GameWindow < Gosu::Window
 			end
 			#----------------- Input
 			if @comment.size>0
-				@font.draw(@comment, 3*SX/4, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
+				@font.draw(@comment, SX/2, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
 			end
 			s=@text_field.text
 			if s && s.size>0
@@ -269,7 +274,7 @@ class GameWindow < Gosu::Window
 	end
 	def display_comment(text)
 		@comment=text
-		Thread.new { sleep 4; @comment="" }
+		Thread.new { sleep 10; @comment="" }
 	end
 end
 
