@@ -30,12 +30,12 @@ Done:
 * Player position/speed/accelerations are replicates on each other players
 * Star destructions are replicates
 * Keyboard textual input are sending/display on all other player
-* Multicast for winxp, win 7 ok, with 1.3p362, (Linux to be checked)
+* Multicast for winxp, win 7 ok, withe 1.3p362, (Linux to be checked)
 
 TODO:
 * start/end/restart game 
 * introduction, help
-* transmition og game parameter to all (nb star, coefs...), current version need
+* transmition of game parameter to all (nb star, coefs...), current version need
   to be exactly identique for each gamer
 * display list of current players, with name
 
