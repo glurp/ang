@@ -1,3 +1,4 @@
+# Creative Commons BY-SA :  Regis d'Aubarede <regis.aubarede@gmail.com>
 
 module ZOrder
   Background, Stars, Player, UI = [0,1,2,3]
@@ -14,11 +15,14 @@ class Range ; def rand() self.begin+Kernel.rand((self.end-self.begin).abs) end ;
 
 # pseudo newton
 def newton_xy1(p1,p2,a,b)
- k=1.0/40000
+ k1=1.0/40
+ k2=1.0/40000
  dx,dy=[a.x-b.x,a.y-b.y]
  d=Math::sqrt(dx ** 2 + dy ** 2)
- #f=(k*p1*p2/(d*d)).minmax(100)
- f=(k*p1*p2/(d)).minmax(100)
+ f1=(k1*p1*p2/(d*d+100)).minmax(100)
+ f2=(k2*p1*p2/(d)).minmax(100)
+ f=0.8*[f1,f2].max
+ #p [f,f1,f2]
  teta=Math.atan2(dy,dx)   
  r=[-f*Math.cos(teta),-f*Math.sin(teta)]
  r
