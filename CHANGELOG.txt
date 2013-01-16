@@ -1,4 +1,6 @@
-9.7.1
+9.8.1
+    README.md : avencement multiplayer
+9.8.0 : 2013-01-16 13:00:55 +0100
     agent.rb : correct
 9.7.0 : 2013-01-16 12:54:52 +0100
     tools.rb : newten more smooth
