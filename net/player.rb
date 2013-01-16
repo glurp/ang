@@ -43,15 +43,15 @@ class Player
 	@command=command
   end
 
-  def move(stars)
+  def move(stars,now)
 	if @local
 		a=false
 		(a=true;@vel_x *= -1) if @x >= SX || @x <= 0 
 		(a=true;@vel_y *= -1) if @y >= SY || @y <= 0
-		@x -= 10 if @x >= SX   && @vel_x == 0
-		@y -= 10 if @y >= SY  && @vel_y == 0
-		@x += 10 if @x <= 0   && @vel_x == 0
-		@y += 10 if @y <= 0   && @vel_y == 0
+		@x = SX-10 if @x >= SX   && @vel_x.abs < 0.01
+		@y = SY-10 if @y >= SY  && @vel_y.abs < 0.01
+		@x = 10 if @x <= 0   && @vel_x.abs < 0.01
+		@y = 10 if @y <= 0   && @vel_y.abs < 0.01
 		
 		@angle+=@vangle
 		@vangle=@vangle*95.0/100
@@ -63,7 +63,7 @@ class Player
 		@vel_y.minmax(-50,+50)
 		@x += @vel_x
 		@y += @vel_y
-		n=Time.now.to_f*1000
+		n=now*1000
 		delta=n-@now
 		if delta >= $NET_TRANSMIT
 			@top+=1
@@ -133,10 +133,10 @@ class Player
 		else
 			if @vel_x !=0 || @vel_y!=0			
 				@score -= 10
-				@x -= 25*@vel_x
-				@y -= 25*@vel_y
-				@x -= -2*25*@vel_x if @x >= SX   && @vel_x == 0
-				@y -= -2*25*@vel_y if @y >= SY  && @vel_y == 0
+				@x -= 15*@vel_x
+				@y -= 15*@vel_y
+				@x -= -2*10*@vel_x if @x >= SX   && @vel_x == 0
+				@y -= -2*10*@vel_y if @y >= SY  && @vel_y == 0
 			else
 				@x += (-10..+10).rand
 				@y += (-10..+10).rand
