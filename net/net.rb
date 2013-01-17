@@ -15,11 +15,15 @@ class NetClient
 	class << self
 		def init(game) 
 		    @is_master=true
+			@trace=false
 			@event_stack = Queue.new
 			@players,@players_ip,@game={},{},game
 			@queue= Queue.new
 			@mcast=MCast.new(self)
 			Thread.new { dispatch() }
+		end
+		def set_trace(on)
+			@trace=on
 		end
 		def is_master() @is_master end
 		def reinit_master(lid) 
@@ -30,11 +34,11 @@ class NetClient
 		def receive_data(data)
 			return if !(data && data[0,1]=="[")
 			bdata=eval( data )
+			log("Received: #{bdata.inspect[0..100]} / length=#{data.size} bytes") if @trace
 			if Array===bdata && bdata.length>1
 				code,id,*bdata=bdata
 				return if id==$id
 				@is_master=false if id<$id 
-				puts  "#{$id} recieve from #{id} : #{data[0..100]}" if code!="move" && code!="star_delete"
 				@event_stack << [code,id,bdata]
 			end
 		end
@@ -57,15 +61,24 @@ class NetClient
 					@game.get_positions(id,bdata) if id < $id
 				when "star_delete"
 					@game.star_deleted(bdata[0])
+				when "nmissile"
+					@game.new_missile(bdata)
+				when "emissile"
+					@game.end_missile(bdata[0])
 				when "comment"
 					@game.display_comment(bdata[0])
-				when "alive"
+				when "dead-pl"
+					@game.receive_echec(bdata[0])
+				when "echo"
+					recho(bdata)
+				when "recho"
+					@game.recho(id,*bdata) rescue p $!
 				when "quit"
-					@game.del_player(id)
+					@game.recho(id,*bdata) rescue nil
 				else
 					puts "recieved unknown message #{[code,id,data].join(", ")}"
-				end
-			end
+				end rescue (puts $!.to_s + "\n  "+ $!.backtrace.join("\n  "))
+			end 
 		end
 		def dispatch()
 			@mcast.send_message(1,["connect",$id])
@@ -86,6 +99,11 @@ class NetClient
 		def send_position(data)		@queue.push(["positions",$id,*data]) end
 		def star_deleted(index) 	@queue.push(["star_delete",$id,index]) end
 		def comment(text)			@queue.push(["comment",$id,text]) 	end
+		def new_missile(data)		@queue.push(["nmissile",$id,*data]) 	end
+		def end_missile(data)		@queue.push(["emissile",$id,*data]) 	end
+		def dead_player(data)		@queue.push(["dead-pl",$id,*data]) 	end
+		def echo(data)				@queue.push(["echo",$id,*data]) 	end
+		def recho(data)				@queue.push(["recho",$id,*data]) 	end
 		def is_stoping()
 			@queue.pop while (@queue.size>2)
 			@queue.push(["quit",$id])
