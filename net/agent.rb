@@ -28,7 +28,7 @@ SY=900 / KK  #             height
 $INITIALE_SCORE=2000
 $NB_STAR=55
 $RANGE_STAR_SIZE=(10..40) # more planet / bigger planets ==>> harder game!
-$NET_TRANSMIT=100
+$NET_TRANSMIT=80
 $NB_PLANET=6
 $NB_PL=$NB_STAR+$NB_PLANET
 #######################################################
@@ -58,9 +58,14 @@ class GameWindow < Gosu::Window
   attr_reader :star,:ping
   def initialize
     super((SX*KKI).to_i, (SY*KKI).to_i, false)
-	@kbcars=Gosu.constants.collect(&:to_s).grep(/^Kb\w$/).map {|k|  Gosu.const_get(k)} +
-	  [Gosu::KbSpace,Gosu::KbReturn,Gosu::KbSpace]
-	  
+	# "KbRangeBegin", "KbEscape", "KbF1",..., "KbF12", "Kb1", ... "Kb0", "KbA",... "KbZ", 
+	# "KbTab", "KbReturn", "KbSpace", "KbLeftShift", "KbRightShift", "KbLeftControl", 
+	# "KbRightControl", "KbLeftAlt", "KbRightAlt", "KbLeftMeta", "KbRightMeta", 
+	# "KbBackspace", "KbLeft", "KbRight", "KbUp", "KbDown", "KbHome", "KbEnd", 
+	# "KbInsert", "KbDelete", "KbPageUp", "KbPageDown", "KbEnter", "KbNumpad1", ... "KbNumpad0", 
+	# "KbNumpadAdd", "KbNumpadSubtract", "KbNumpadMultiply", "KbNumpadDivide", 
+	# "KbRangeEnd", "KbNum"]
+	
 	@text_field =  Gosu::TextInput.new()
 	@text_field.text = "Input..."
 	self.text_input=@text_field
@@ -191,7 +196,7 @@ class GameWindow < Gosu::Window
 		(@player.accelerate(true);k=Gosu::KbUp)   if button_down? Gosu::KbUp   or button_down? Gosu::GpButton0
 		(@player.accelerate(false);k=Gosu::KbDown)if button_down? Gosu::KbDown or button_down? Gosu::GpButton1
 		if @missiles.select {|m| m.local }.size<= 20
-		 (@player.fire_missile();k=Gosu::KbNumpad0)  if button_down? Gosu::KbNumpad0 or button_down? Gosu::KbEnter
+		 (@player.fire_missile();k=Gosu::KbNumpad0)  if button_down? Gosu::KbNumpad0 or button_down? Gosu::KbInsert
 		end
 		if k==nil
 			@kbcars
@@ -242,9 +247,9 @@ class GameWindow < Gosu::Window
 				NetClient.end_missile([m.id])
 				@player.dead				
 				true
-			elsif pl=@players.detect {|pl| m.collision_players(pl) }
+			elsif idpl=@players.detect {|id,player| m.collision_players(player) }
 				NetClient.end_missile([m.id])
-				pl.dead
+				idpl[1].dead
 				true
 			end
 		end
