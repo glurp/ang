@@ -47,6 +47,7 @@ require_relative 'tools.rb'
 require_relative 'net.rb'
 require_relative 'star.rb'
 require_relative 'player.rb'
+require_relative 'missile.rb'
 
 
 ###########################################################################
@@ -113,6 +114,7 @@ class GameWindow < Gosu::Window
 	end
 	def go1(text)
 		@stars = Array.new
+		@missiles=[]
 		@player.restart
 		@global_score=0
 		@touch={}
@@ -187,6 +189,9 @@ class GameWindow < Gosu::Window
 		(@player.turn_right;k=Gosu::KbRight)      if button_down? Gosu::KbRight      or button_down? Gosu::GpRight
 		(@player.accelerate(true);k=Gosu::KbUp)   if button_down? Gosu::KbUp   or button_down? Gosu::GpButton0
 		(@player.accelerate(false);k=Gosu::KbDown)if button_down? Gosu::KbDown or button_down? Gosu::GpButton1
+		if @missiles.select {|m| m.local }.size<= 20
+		 (@player.fire_missile();k=Gosu::KbNumpad0)  if button_down? Gosu::KbNumpad0 or button_down? Gosu::KbEnter
+		end
 		if k==nil
 			@kbcars
 		end
@@ -196,6 +201,15 @@ class GameWindow < Gosu::Window
 		@touch.keys.each  { |id| (t=true; @players.delete(id)) if @players[id] }
 		NetClient.reinit_master(@players.keys) if t
 		@players.keys.each { |id| @touch[id]=true }
+	end
+	def add_missile(m)
+		@missiles << m
+	end
+	def new_missile(data)
+		@missiles << Missile.new(self,@animation,false,*data)	
+	end
+	def end_missile(id)
+		@missiles.reject! {|m| m.id==id}
 	end
 	######################## Global draw : update()/draw() are invoked continuously by Gosu engine
 	
@@ -208,6 +222,8 @@ class GameWindow < Gosu::Window
 		@players.each { |id,pl| pl.move(@stars,now) } if @player.score>0
 		@stars.each { |star| star.move(self,@stars) }
 		return if @ping<@start
+		missiles_behavior(now)
+		
 		if @player.score>0
 			interactions_client()
 			@player.move(@stars,now)
@@ -216,6 +232,22 @@ class GameWindow < Gosu::Window
 		@global_score=@player.score+@players.values.inject(0) { |sum,pl| (sum+pl.score) }
 		winner(@global_score) if 0 == (@stars.select { |s| s.type }.size )
 	end
+	def missiles_behavior(now)
+		@missiles.reject! do |m|			
+			next(true) if m.move(@stars,now)
+			m.draw(self,@stars)
+			next(false ) unless m.local 
+			if m.collision_players(@player)
+				NetClient.end_missile([m.id])
+				@player.dead				
+				true
+			elsif pl=@players.detect {|pl| m.collision_players(pl) }
+				NetClient.end_missile([m.id])
+				pl.dead
+				true
+			end
+		end
+	end
 	
 	def draw
 		scale(KKI,KKI) {
@@ -223,6 +255,7 @@ class GameWindow < Gosu::Window
 			@players.each {|id,p| p.draw(self,@stars) }
 			@player.draw(self,@stars) 
 			@stars.each { |star| star.draw() }
+			@missiles.each { |m| m.draw(self,@stars) }
 			draw_variable_background()
 		}
 	end
