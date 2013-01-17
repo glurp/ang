@@ -11,8 +11,8 @@ Working, but missing menu, setup, level choice ....
 Free to use, modify and distribute.
 
 
-Multi gamer
-===========
+Multigamer
+=========
 
 
 In net directory, a ang game, version  multi-player on local network,
@@ -24,6 +24,15 @@ maximum of stars.
 Usage:
   > angm
 
+For checking multicast working, and timings on your host/network :
+  > angm_net_test  # can be run multiple in same host and/or on distinct host
+
+On my host, I get
+* 23 ms between application on same host
+* 30 ms between application on distinct host, same LAN
+
+
+  
 Done:
 * auto discovery of player, first player present is the 'master'
 * Send master current planet/star configuration to new players
@@ -37,7 +46,7 @@ TODO:
 * introduction, help
 * transmition of game parameter to all (nb star, coefs...), current version need
   to be exactly identique for each gamer
-* display list of current players, with name
+* display list of current players, with gamer name
 
 
 Inspiration
@@ -51,7 +60,11 @@ http://regisaubarede.posterous.com/tag/game
 
 Physics
 =======
-Newton law ( K.M.m/Dist**2 ) give a gameplay too reactive, so I use my own gravity version :)
+Newton law ( F=K.M.m/Dist**2 ) give a gameplay too reactive, so I use my own gravity version :)
+Linear low attraction : ( F=K.M.m/Dist ) give a gameplay too smoth.
+
+so i used : F=max( Newton law, Linear law), this give realism when planet is closed, smooth mouvement
+when spaceship is far away of all planet.
 
 Requirement
 ===========
@@ -60,7 +73,6 @@ Git,Ruby, gosu
 
 ```
  install ruby 1.9.X
- > gem install gosu
  > gem install ang
  > ang
 
@@ -68,4 +80,7 @@ Git,Ruby, gosu
  > git clone http://github.com/raubarede/ang.git
  > cd ang
  > ruby main.rb
+ > cd ../net 
+ > ruby multicast_test.rb &
+ > ruby agent.rb
 ```
