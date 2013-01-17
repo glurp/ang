@@ -5,7 +5,7 @@
 # move by arrow keyboard acceleration commande, 
 # eat star, move with current speed, and attractive planets
 class Player
-  attr_accessor :x,:y,:r,:score
+  attr_accessor :x,:y,:r,:local,:score,:id
   def initialize(window,animation,local)
 	@local = local
 	@top=0
@@ -13,11 +13,9 @@ class Player
     @animation = animation  
     @app=window
 	clear()
+	@id=(Time.now.to_f*1000).to_i*1000+rand(1000)
 	@r=15
 	self.restart()
-  end
-  def clear
-    @pos=1
   end
   def restart
     @vel_x = @vel_y = @angle = @vangle = 0.0
@@ -28,6 +26,19 @@ class Player
 	@lxy=[]
 	@now=Time.now.to_f * 1000
 	@top=0
+  end
+  def clear() @pos=1 end
+  def dead
+	@x=-1000
+	@y=-1000
+	NetClient.dead_player([id])
+  end
+  def fire_missile
+	v=Math.sqrt(@vel_x*@vel_x+@vel_y*@vel_y)
+	v=6 if v.abs<6
+    vx=Gosu::offset_x(@angle,v)
+    vy=Gosu::offset_y(@angle,v)
+	Missile.new(@app,@animation,@local,@x+10*vx,@y+10*vy,vx*1.2,vy*1.2,@r)
   end
   def warp(x, y)    @x, @y = x, y  ; end
   def turn_left()    @pos=3 ;  @vangle -= 0.3 ; end
@@ -44,6 +55,7 @@ class Player
   end
 
   def move(stars,now)
+	return if @x==-1000 && @y==-1000
 	if @local
 		a=false
 		(a=true;@vel_x *= -1) if @x >= SX || @x <= 0 
