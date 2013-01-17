@@ -50,38 +50,45 @@ class NetClient
 		def event_invoke()
 			while @event_stack.size>0
 				code,id,bdata=*(@event_stack.pop)
-				case code
-				when "move"
-					@game.update_payers(id,bdata)
-				when "connect"
-					@game.init_player(id)
-					@game.send_positions(id) 
-				when "success"
-					@game.receive_success(id)
-				when "echec"
-					@game.receive_echec(id)
-				when "positions"
-					@game.get_positions(id,bdata) if id < $id
-				when "star_delete"
-					@game.star_deleted(bdata[0])
-				when "nmissile"
-					@game.new_missile(bdata)
-				when "emissile"
-					@game.end_missile(bdata[0])
-				when "comment"
-					@game.display_comment(bdata[0])
-				when "dead-pl"
-					@game.receive_echec(bdata[0])
-				when "echo"
-					recho(bdata)
-				when "recho"
-					@game.recho(id,*bdata) rescue p $!
-				when "quit"
-					@game.recho(id,*bdata) rescue nil
-				else
-					puts "recieved unknown message #{[code,id,data].join(", ")}"
-				end rescue (puts $!.to_s + "\n  "+ $!.backtrace.join("\n  "))
-			end 
+				invoke(code,id,bdata)
+			end
+		end
+		def wait_and_invoke()
+			code,id,bdata=*(@event_stack.pop)
+			invoke(code,id,bdata)
+		end
+		def invoke(code,id,bdata)
+			case code
+			when "move"
+				@game.update_payers(id,bdata)
+			when "connect"
+				@game.init_player(id)
+				@game.send_positions(id) 
+			when "success"
+				@game.receive_success(id)
+			when "echec"
+				@game.receive_echec(id)
+			when "positions"
+				@game.get_positions(id,bdata) if id < $id
+			when "star_delete"
+				@game.star_deleted(bdata[0])
+			when "nmissile"
+				@game.new_missile(bdata)
+			when "emissile"
+				@game.end_missile(bdata[0])
+			when "comment"
+				@game.display_comment(bdata[0])
+			when "dead-pl"
+				@game.receive_echec(bdata[0])
+			when "echo"
+				recho(bdata)
+			when "recho"
+				@game.recho(id,*bdata) rescue p $!
+			when "quit"
+				@game.recho(id,*bdata) rescue nil
+			else
+				puts "recieved unknown message #{[code,id,data].join(", ")}"
+			end rescue (puts $!.to_s + "\n  "+ $!.backtrace.join("\n  "))
 		end
 		def dispatch()
 			@mcast.send_message(1,["connect",$id])
