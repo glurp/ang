@@ -80,7 +80,7 @@ Git,Ruby, gosu
  > git clone http://github.com/raubarede/ang.git
  > cd ang
  > ruby main.rb
- > cd ../net 
+ > cd net 
  > ruby multicast_test.rb &
  > ruby agent.rb
 ```
