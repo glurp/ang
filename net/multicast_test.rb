@@ -47,7 +47,7 @@ class App
 	def initialize
 		NetClient.init(self)
 		NetClient.set_trace(true)
-		Thread.new { loop { NetClient.event_invoke() ; sleep 0.001} }
+		Thread.new { loop { NetClient.wait_and_invoke() } }
 		Thread.new { 
 			loop { 
 				#NetClient.connect()
@@ -60,8 +60,8 @@ class App
 	end
 	def method_missing(name,*args)
 		if name==:recho
-			id_demander,id_sender,time=*args
-			log("Echo timing for #{id_sender} : #{(Time.now.to_f*1000).to_i - time} ms") 
+			id_sender,id_demander,time=*args
+			log("Echo timing for #{id_sender} : #{(Time.now.to_f*1000).to_i - time} ms") if id_demander==$id
 		else
 			log(("%15s : %s" % ["<#{name}>",args.inspect])[0..100]) if name!=:move && name!=:update_payers
 		end
