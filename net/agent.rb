@@ -139,6 +139,7 @@ class GameWindow < Gosu::Window
 	def receive_echec(id)
 		ego("Game over...")  
 	end
+    def recho(*args) end
 
 	def send_positions(id)
 		stars=@stars.map { |s| s.get_pos() }
