@@ -1,3 +1,8 @@
+9.9.3
+    player.rb : missile lancher
+    net.rb : echo, recho, missile
+    agent.rb : missile
+    Starfighter.bmp : missille
     README.md : Update todo
     VERSION : n
 9.9.0 : 2013-01-16 17:28:28 +0100
