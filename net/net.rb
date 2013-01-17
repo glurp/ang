@@ -37,7 +37,10 @@ class NetClient
 			log("Received: #{bdata.inspect[0..100]} / length=#{data.size} bytes") if @trace
 			if Array===bdata && bdata.length>1
 				code,id,*bdata=bdata
-				return if id==$id
+				if id==$id
+					log(" This message is from myself ! so, multicast seem ok")if @trace
+					return
+				end
 				@is_master=false if id<$id 
 				@event_stack << [code,id,bdata]
 			end
