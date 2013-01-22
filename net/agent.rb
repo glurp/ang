@@ -88,7 +88,7 @@ class GameWindow < Gosu::Window
 	@ping=0
 	@start=0
 	@mouse=nil
-    self.go("Start")
+    self.go("Multiplayer version, in development ! Start")
 	NetClient.init(self)
 	Thread.new {
 		sleep 3
@@ -273,10 +273,19 @@ class GameWindow < Gosu::Window
 				x+(4..8).rand, y,  0xAAFFFFFF)
 		end
 	end		
+	def draw_text(text,option)
+		w=option[:font].text_width(@text, option[:scale])
+		h=10*option[:scale];
+		option[:font].draw(text,
+			option[:x]<0 ? -option[:x] : (option[:x]-w/2),
+			option[:y]<0 ? -option[:y] : (option[:y]-h/2),
+			ZOrder::UI,
+			option[:scale],option[:scale],option[:color])
+	end
 	def draw_variable_background()
 		if @ping<@start
-			@font2.draw(@text+ "  ! !", SX/2, SY/2, ZOrder::UI, 1.0, 1.0, 0xf0f0f000)
-			@font.draw("", 10, 10, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			draw_text(@text+ "  ! !",x: SX/2,y: SY/2,scale: 1,color: 0xf0f0f000,font: @font2)
+			draw_text("",x: 10,y: 10,scale: 1,color: 0xffffff00,font: @font)
 		else		
 			#----------- barr graph energies reserve level
 			h=5+(@player.score/2000.0)*(SY-10)
@@ -293,14 +302,14 @@ class GameWindow < Gosu::Window
 			}			
 			
 			#------------ textual energie reserve level
-			@font.draw("Global Score: #{@global_score}", 25/KK, 10/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+			draw_text("Global Score: #{@global_score}", x: -25/KK,y: 10/KK,scale: 1,color: 0xffffff00,font: @font)
 			#------------ is Master
 			if NetClient.is_master
-				@font.draw("Master", 25/KK, 20/KK, ZOrder::UI, 1.0, 1.0, 0xffffff00)
+				draw_text("Master", x: 25/KK,y: 20/KK,scale: 1,color: 0xffffff00,font: @font)
 			end
 			#----------------- Input
 			if @comment.size>0
-				@font.draw(@comment, SX/2, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
+				draw_text(@comment, x: SX/2,y: SY-100,scale: 1,color: 0xffeeeeee,font: @font)
 			end
 			s=@text_field.text
 			if s && s.size>0
@@ -308,7 +317,7 @@ class GameWindow < Gosu::Window
 					@text_field.text=""
 					NetClient.comment(s[0..-1])
 				end
-				@font.draw("Input (end with '.') : "+ s , SX/4, SY-100, ZOrder::UI, 1.0, 1.0, 0xffeeeeee)
+				draw_text("Input (end with '.') : "+ s,x: SX/4,y: SY-100,scale: 1,color: 0xffeeeeee,font: @font)
 			end
 		end
 	end
