@@ -40,12 +40,12 @@ class Missile < Player
   end
   def update_by_net(data)  end
   def draw(app,stars)
-	img = @animation[8]
+	img = @animation[@local ? 8 : 9]
 	img.draw_rot(@x, @y, ZOrder::Player, 90.0+@angle*180.0/3.14159)
   end
   # test missile collision with some player(s)
   def collision_players(player)
-     @age<60*5 && local && Gosu::distance(@x, @y, player.x, player.y) < (15+player.r) 
+     @age>(60*5) && local && Gosu::distance(@x, @y, player.x, player.y) < (7+player.r) 
   end
   
 end
