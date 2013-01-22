@@ -29,8 +29,7 @@ class Player
   end
   def clear() @pos=1 end
   def dead
-	@x=-1000
-	@y=-1000
+	@vangle=1000
 	NetClient.dead_player([id])
   end
   def fire_missile
