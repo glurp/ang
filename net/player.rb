@@ -38,7 +38,7 @@ class Player
 	v=6 if v.abs<6
     vx=Gosu::offset_x(@angle,v)
     vy=Gosu::offset_y(@angle,v)
-	Missile.new(@app,@animation,@local,@x+10*vx,@y+10*vy,vx*1.2,vy*1.2,@r)
+	Missile.new(@app,@animation,@local,nil,@x+10*vx,@y+10*vy,vx*1.2,vy*1.2,@r)
   end
   def warp(x, y)    @x, @y = x, y  ; end
   def turn_left()    @pos=3 ;  @vangle -= 0.3 ; end
