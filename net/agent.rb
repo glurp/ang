@@ -25,7 +25,7 @@ KKI= KK / 1
 SX=1280 / KK # window size width
 SY=900 / KK  #             height
 
-$INITIALE_SCORE=2000
+$INITIALE_SCORE=20000
 $NB_STAR=55
 $RANGE_STAR_SIZE=(10..40) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=80
@@ -125,7 +125,9 @@ class GameWindow < Gosu::Window
 		@touch={}
 		$NB_PLANET.times { @stars.push( Star.new(@stars,false,@star_anim) ) }
 		$NB_STAR.times { @stars.push( Star.new(@stars,true,@star_anim) ) }
-		NetClient.connect()  if @players.size==0 && text=~ /\.\.\./  
+		if @players.size>0
+			NetClient.connect()  
+		end
 	end
 	def pending?(d=0) (@start+d > @ping) end
 	
