@@ -1,4 +1,8 @@
-9.11.3
+9.12.1
+    player.rb : missile creation
+    missile.rb : age creation
+    agent.rb : creation missille from net
+9.12.0 : 2013-01-22 17:47:08 +0100
     agent.rb : text align
     net.rb : event queue by pooling and by wait
     multicast_test.rb : comments
