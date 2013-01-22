@@ -3,8 +3,10 @@
 #                        P l a y e r
 ###########################################################################
 class Missile < Player
-  def initialize(window,animation,local,x,y,vx,vy,weight)
+  def initialize(window,animation,local,id,x,y,vx,vy,weight)
 	super(window,animation,local)
+	@id=id if id
+	@age=0
 	@r=weight
     @vangle = 0.0
 	@angle=Math.atan2(vx,vy)
@@ -13,7 +15,7 @@ class Missile < Player
 	@now=Time.now.to_f * 1000
 	@top=0
 	@app.add_missile(self)
-	NetClient.new_missile([@id,x,y,vx,vy,weight])
+	NetClient.new_missile([@id,x,y,vx,vy,weight]) unless id
   end
   def clear() @pos=5 end
   def restart() end
@@ -21,6 +23,7 @@ class Missile < Player
   def warp(x, y)    @x, @y = x, y  ; end
 
   def move(stars,now)
+		@age+=1
 		return(true) if @x >= SX+@r || @x+@r <= 0 || @y+@r >= SY || @y+@r <= 0
 		vx,vy=newton(stars)
 		@vel_x+=vx
@@ -42,7 +45,7 @@ class Missile < Player
   end
   # test missile collision with some player(s)
   def collision_players(player)
-      local && Gosu::distance(@x, @y, player.x, player.y) < (15+player.r) 
+     @age<60*5 && local && Gosu::distance(@x, @y, player.x, player.y) < (15+player.r) 
   end
   
 end
