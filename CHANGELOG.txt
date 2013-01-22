@@ -1,4 +1,9 @@
-9.12.1
+9.13.1
+    player.rb : age
+    missile.rb : age
+    agent.rb : missile yellow
+    Starfighter.bmp : create yellow
+9.13.0 : 2013-01-22 18:05:42 +0100
     player.rb : missile creation
     missile.rb : age creation
     agent.rb : creation missille from net
