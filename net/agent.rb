@@ -212,7 +212,7 @@ class GameWindow < Gosu::Window
 		@missiles << m
 	end
 	def new_missile(data)
-		@missiles << Missile.new(self,@animation,false,*data)	
+		@missiles << Missile.new(self,@player_anim,false,*data)	
 	end
 	def end_missile(id)
 		@missiles.reject! {|m| m.id==id}
