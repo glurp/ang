@@ -13,7 +13,9 @@ class Star
     @r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
     @no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
     @rot=rand(180)
-    @show= rand()<0.9
+    ok=(@type || rand()<0.4)
+    p "nok" unless ok
+    @show= ok  ? 1000 : 0
     @color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
     @color.green = type ? 0   : 200 
@@ -64,9 +66,11 @@ class Star
   
   ####### draw client+server side
   def draw()
-    return unless @show
+    @show+=0.8 if @show<1000
+    return unless @show>10
     img = @animation[@no_img]
-    img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,@r/40.0, @r/40.0,@color)
+    fx=(@r/40.0)*(@show/1000.0)
+    img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,fx,fx,@color)
   end
 end
 
