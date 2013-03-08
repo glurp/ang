@@ -1,4 +1,6 @@
-9.13.1
+9.13.2
+    star.rb : hole star
+    agent.rb : a little more difficulty
     player.rb : age
     missile.rb : age
     agent.rb : missile yellow
