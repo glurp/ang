@@ -25,9 +25,9 @@ KKI= KK / 1
 SX=1280 / KK # window size width
 SY=900 / KK  #             height
 
-$INITIALE_SCORE=20000
+$INITIALE_SCORE=3000
 $NB_STAR=55
-$RANGE_STAR_SIZE=(10..40) # more planet / bigger planets ==>> harder game!
+$RANGE_STAR_SIZE=(10..50) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=80
 $NB_PLANET=6
 $NB_PL=$NB_STAR+$NB_PLANET
@@ -259,7 +259,7 @@ class GameWindow < Gosu::Window
 	
 	def draw
 		scale(KKI,KKI) {
-			#draw_background
+			draw_background
 			@players.each {|id,p| p.draw(self,@stars) }
 			@player.draw(self,@stars) 
 			@stars.each { |star| star.draw() }
