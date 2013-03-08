@@ -7,13 +7,14 @@ class Star
   
   def initialize(ls,type,animation)
     @animation = animation
-	@index=ls.size
-	@ls=ls
-	@type=type
-	@r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
-	@no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
-	@rot=rand(180)
-	@color = Gosu::Color.new(0xff000000 )
+    @index=ls.size
+    @ls=ls
+    @type=type
+    @r=@type ? 10 : $RANGE_STAR_SIZE.rand() 
+    @no_img= type ? 1 : (rand()>0.5 && @r>35) ? 0 : (rand(3)+2)
+    @rot=rand(180)
+    @show= rand()<0.9
+    @color = Gosu::Color.new(0xff000000 )
     @color.red =   type ? 255 : 200
     @color.green = type ? 0   : 200 
     @color.blue =  type ? 0   : 200
@@ -63,6 +64,7 @@ class Star
   
   ####### draw client+server side
   def draw()
+    return unless @show
     img = @animation[@no_img]
     img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,@r/40.0, @r/40.0,@color)
   end
