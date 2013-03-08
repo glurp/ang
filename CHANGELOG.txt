@@ -1,4 +1,6 @@
-9.13.2
+9.13.3
+    star.rb : star variable dimention
+    agent.rb : smoother
     star.rb : hole star
     agent.rb : a little more difficulty
     player.rb : age
