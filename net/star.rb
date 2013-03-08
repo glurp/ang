@@ -66,8 +66,8 @@ class Star
   
   ####### draw client+server side
   def draw()
-    @show+=0.8 if @show<1000
-    return unless @show>10
+    @show+=0.3 if @show<1000
+    return unless @show>600
     img = @animation[@no_img]
     fx=(@r/40.0)*(@show/1000.0)
     img.draw_rot(@x, @y, ZOrder::Stars, @rot, 0.5,0.5 ,fx,fx,@color)
