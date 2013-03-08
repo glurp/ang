@@ -31,6 +31,8 @@ $RANGE_STAR_SIZE=(10..50) # more planet / bigger planets ==>> harder game!
 $NET_TRANSMIT=80
 $NB_PLANET=6
 $NB_PL=$NB_STAR+$NB_PLANET
+$ACCELERATION_WHEIGHT=2
+
 #######################################################
  
 
