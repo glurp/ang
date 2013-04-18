@@ -13,7 +13,7 @@ Intersideral navigation
 EEND
   
   dependencies = [
-    [:runtime,     "gosu",  "~> 0.7"],
+    [:runtime,     "gosu"],
 	]
   
   s.files         = Dir['**/*']
@@ -33,5 +33,16 @@ EEND
       s.add_dependency(name, version)
     end
   end
+ s.post_install_message = <<TTEXT
+
+      -------------------------------------------------------------------------------
+
+      Hello, welcome to ang game....
+
+        $ ang    # simple easy training
+        $ mang   # multi gamer, harder
+
+      -------------------------------------------------------------------------------
+TTEXT
 end
 
