@@ -7,6 +7,10 @@
 # download this > gem install ang
 # run			> angm
 ###########################################################################
+if RUBY_VERSION >= "2.0.0"
+  puts "Sorry, not ready for ruiby 2..."
+  exit(0)
+end
 require 'thread'
 require 'timeout'
 begin
