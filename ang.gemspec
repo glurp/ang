@@ -40,7 +40,7 @@ EEND
       Hello, welcome to ang game....
 
         $ ang    # simple easy training
-        $ mang   # multi gamer, harder
+        $ angm   # multi gamer, harder
 
       -------------------------------------------------------------------------------
 TTEXT
