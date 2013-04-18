@@ -1,4 +1,7 @@
-9.16.1
+9.17.1
+    ang.gemspec : d
+    VERSION : q
+9.17.0 : 2013-04-18 19:50:58 +0200
     ang.gemspec : comment
 9.16.0 : 2013-04-18 19:48:25 +0200
     agent.rb : test not ruby 2
