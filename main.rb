@@ -12,8 +12,8 @@
 #      > ocra main.rb
 #
 ###########################################################################
-if RUBY_VERSION >= "2.0.0"
-  puts "Sorry, not ready for ruiby 2..."
+if RUBY_VERSION >= "3.0.0"
+  puts "Sorry, not ready for ruiby 3..."
   exit(0)
 end
 ##################### Tuning ##########################
