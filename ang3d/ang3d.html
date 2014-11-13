@@ -344,6 +344,7 @@ from ang (2D gosu/ruby game, see github)
           if (dist<(rplanet+rplayer)) {
             player.position.addSelf( vitesse.multiplyScalar(-10))
             vitesse.set(0,0,0);
+			if (energie > 30) energie -= 30 
             return;
           }
           var rangle=Math.atan2(y,x);
@@ -456,14 +457,15 @@ from ang (2D gosu/ruby game, see github)
 		  if (divHelp) return ;
 		  divHelp= document.createElement('div');
 		  var h={
-			position: "absolute", top: "25%", left:"25%",width:"50%",height: "50%",
-			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "23px bold Arial", color: "#FF0"
+			position: "absolute", top: "25%", left:"15%",width:"70%",height: "50%",
+			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "18px bold Arial", color: "#FF0"
 		  };
 		  for (key in h) divHelp.style[key]=h[key];
-		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>"+
-		   "<br><br><br><br><a href='javascript:closeHelp();'> Close </a>";  
+		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>Mouse does nohing..."+
+		   "<br><hr/><br>Energie is consume when accelerate or planete collision. Eating red ball give some energies :)"+
+		   "<br>You can win by eating all ball."+
+		   "<br><hr><br><br><a href='javascript:closeHelp();'> Close </a>";  
 		  document.body.appendChild(divHelp);
-		  setTimeout(function () {closeHelp()},15000);
 	  }
 	  function closeHelp() { if (divHelp) {document.body.removeChild(divHelp); divHelp=null;} }
 
