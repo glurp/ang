@@ -40,7 +40,7 @@ from ang (2D gosu/ruby game, see github)
       var SCREEN_HEIGHT = window.innerHeight;
 	  var energie=window.innerHeight-100;
       var container;
-
+	  var realview=true;
       var camera, scene, canvasRenderer, webglRenderer;
       var mesh, zmesh, lightMesh, geometry;
       var directionalLight, pointLight;
@@ -69,6 +69,8 @@ from ang (2D gosu/ruby game, see github)
       var K_RIGHT=39;
       var K_UP=38;
       var K_DOWN=40;
+      var K_F2=113;
+      var K_F1=112;
       var currentlyPressedKeys = [];
       
       var sparksEmitter;
@@ -295,7 +297,7 @@ from ang (2D gosu/ruby game, see github)
 	  var datnow=(new Date()).getTime()
 	  var datev=(new Date()).getTime()
 	  
-	  //====================================== Render
+	  //====================================== Render ================================
       function render() {
         var dx=(new Date()).getMilliseconds()*0.1;
 	    datnow=(new Date()).getTime();
@@ -306,48 +308,29 @@ from ang (2D gosu/ruby game, see github)
         player.rotation.z =(c180/180.0)*pangle;
         player.position.addSelf( vitesse );
 		
-		// camera behinf spacecraft, lookat spacecraft and front
+		// camera behind spacecraft, lookat spacecraft and front
+		if (realview) {
+			var dist=Math.sqrt(player.position.x*player.position.x+player.position.y*player.position.y);
+			camera.position.set(
+			   player.position.x-   500*direction.x, 
+			   player.position.y -  500*direction.y, 
+			   dist<1000 ? 500 : dist/2);
+			
+			camera.lookAt( player.position );
+		} else {
+			camera.position.set(0,0,3000);
+			camera.lookAt( player.position );
+		}
+
 		
-		var dist=Math.sqrt(player.position.x*player.position.x+player.position.y*player.position.y);
-        camera.position.set(
-           player.position.x-   500*direction.x, 
-           player.position.y -  500*direction.y, 
-           dist<1000 ? 500 : dist/2);
-        
-        camera.lookAt( player.position );
         particleSystem.geometry.__dirtyVertices=true;
         showEnergie();
         for (var i=0;i < nuages.length;i++)
           if (nuages[i].state) nuages[i].update() 
           
         webglRenderer.render( scene, camera );
-
       }
-      function keybord() {
-        vpangle*=0.75;
-        acc-=1;
-		if (acc<0) acc=0;
-        if (currentlyPressedKeys[K_LEFT]) vpangle+=1.5;
-        if (currentlyPressedKeys[K_RIGHT]) vpangle-=1.5;
-        pangle+=(vpangle);
-
-		var delta=0;
-        if (currentlyPressedKeys[K_UP]) { delta=1;}
-        if (currentlyPressedKeys[K_DOWN]) { delta=-1;}
-		if (delta!=0) {
-			acc+=delta;
-			energie-=1;
-			if (energie<=0) winner(false);
-		}
-        
-        var vAcc=new THREE.Vector3(
-          Math.cos(deg_rad*pangle),
-          Math.sin(deg_rad*pangle),
-          0
-        );
-        vitesse.addSelf( vAcc.multiplyScalar(acc*0.2) );
-        if (acc!=0) particuleInject(player.position,vAcc.multiplyScalar(10));
-      }
+	  
       function newton() {
         if (! player) return;
         var fx=0,fy=0,
@@ -407,6 +390,44 @@ from ang (2D gosu/ruby game, see github)
 		}
 		if (nbt==0) winner(true);
 	  }
+	  
+      function keybord() {
+        vpangle*=0.75;
+        acc-=1;
+		if (acc<0) acc=0;
+        if (currentlyPressedKeys[K_LEFT]) vpangle+=1.5;
+        if (currentlyPressedKeys[K_RIGHT]) vpangle-=1.5;
+        pangle+=(vpangle);
+
+		var delta=0;
+        if (currentlyPressedKeys[K_UP]) { delta=1;}
+        if (currentlyPressedKeys[K_DOWN]) { delta=-1;}
+		if (delta!=0) {
+			acc+=delta;
+			energie-=1;
+			if (energie<=0) winner(false);
+		}
+        
+        var vAcc=new THREE.Vector3(
+          Math.cos(deg_rad*pangle),
+          Math.sin(deg_rad*pangle),
+          0
+        );
+        vitesse.addSelf( vAcc.multiplyScalar(acc*0.2) );
+        if (acc!=0) particuleInject(player.position,vAcc.multiplyScalar(10));
+		if (currentlyPressedKeys[K_F2]) {
+		  realview=!realview;
+		  currentlyPressedKeys[K_F2]=false;
+		}
+		if (currentlyPressedKeys[K_F1]) {
+		  help();
+		  currentlyPressedKeys[K_F1]=false;
+		}
+      }
+	  
+	  
+      /////////////////////// tools
+	  
 	  var divEnergie=null;
       function showEnergie() {
 	    energie=(energie>1000) ? 1000 : (energie<0 ? 0 : energie );
@@ -429,7 +450,23 @@ from ang (2D gosu/ruby game, see github)
 		  document.body.appendChild(divEnd);
 		}
 	  }
-      /////////////////////// tools
+	  	 
+	  var divHelp=null;
+	  function  help() {
+		  if (divHelp) return ;
+		  divHelp= document.createElement('div');
+		  var h={
+			position: "absolute", top: "25%", left:"25%",width:"50%",height: "50%",
+			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "23px bold Arial", color: "#FF0"
+		  };
+		  for (key in h) divHelp.style[key]=h[key];
+		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>"+
+		   "<br><br><br><br><a href='javascript:closeHelp();'> Close </a>";  
+		  document.body.appendChild(divHelp);
+		  setTimeout(function () {closeHelp()},15000);
+	  }
+	  function closeHelp() { if (divHelp) {document.body.removeChild(divHelp); divHelp=null;} }
+
       var ipart=0;
       function particuleInject(pos,vitesse) {
         var v=vitesse.clone().multiplyScalar(-1);
@@ -450,8 +487,12 @@ from ang (2D gosu/ruby game, see github)
 
       
       //////////////////// Keyboard
-      
-      function handleKeyDown(event) { datev=datnow; currentlyPressedKeys[event.keyCode] = true;}
+	  
+      function handleKeyDown(event) { 
+		datev=datnow; 
+		currentlyPressedKeys[event.keyCode] = true;
+		console.log("keycode="+event.keyCode);
+	  }
       function handleKeyUp(event) { currentlyPressedKeys[event.keyCode] = false; } 
       document.onkeydown = handleKeyDown;
       document.onkeyup = handleKeyUp;
