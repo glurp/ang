@@ -39,6 +39,10 @@ from ang (2D gosu/ruby game, see github)
       var SCREEN_WIDTH = window.innerWidth;
       var SCREEN_HEIGHT = window.innerHeight;
 	  var energie=window.innerHeight-100;
+	  var DENERGIE_COLLISION=10;
+	  var DENERGIE_EAT_TANK=20;
+	  var DENERGIE_IMPULSE=0.1;
+	  
       var container;
 	  var realview=true;
       var camera, scene, canvasRenderer, webglRenderer;
@@ -344,7 +348,7 @@ from ang (2D gosu/ruby game, see github)
           if (dist<(rplanet+rplayer)) {
             player.position.addSelf( vitesse.multiplyScalar(-10))
             vitesse.set(0,0,0);
-			if (energie > 30) energie -= 30 
+			if (energie > 30) energie -= DENERGIE_COLLISION 
             return;
           }
           var rangle=Math.atan2(y,x);
@@ -385,7 +389,7 @@ from ang (2D gosu/ruby game, see github)
 		    console.log("dist= "+dist);
 			particuleInject(tank.position,new THREE.Vector3(0,0,-10));
 		    tank.visible=false;
-			energie+=10;
+			energie+=DENERGIE_EAT_TANK;
 		  } else
 		    nbt+=1;
 		}
@@ -405,7 +409,7 @@ from ang (2D gosu/ruby game, see github)
         if (currentlyPressedKeys[K_DOWN]) { delta=-1;}
 		if (delta!=0) {
 			acc+=delta;
-			energie-=1;
+			energie-=DENERGIE_IMPULSE;
 			if (energie<=0) winner(false);
 		}
         
