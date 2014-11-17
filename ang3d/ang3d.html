@@ -73,6 +73,7 @@ from ang (2D gosu/ruby game, see github)
       var K_RIGHT=39;
       var K_UP=38;
       var K_DOWN=40;
+      var K_F3=114;
       var K_F2=113;
       var K_F1=112;
       var currentlyPressedKeys = [];
@@ -230,12 +231,12 @@ from ang (2D gosu/ruby game, see github)
 
         //======================= plan 
         
-        addMesh(new THREE.CubeGeometry( 100000, 100000, 1),
+        /*addMesh(new THREE.CubeGeometry( 100000, 100000, 1),
           1,
           0, 0,-20,
           0 ,0,0,
           new THREE.MeshPhongMaterial( { ambient: 0x000000, color: 0x404040, specular: 0x555555, shininess: 30 , opacity: 0.3} )); 
-        
+        */
         //=====================  sun?
 		
         addMesh( new THREE.SphereGeometry( 5, 32, 32 ), 30.0, 
@@ -338,10 +339,12 @@ from ang (2D gosu/ruby game, see github)
       function newton() {
         if (! player) return;
         var fx=0,fy=0,
-			f1x=0,f1y=0;
+			f1x=0,f1y=0,
+			px=player.position.x,
+			py=player.position.y;
         for (var i in lplanet) { 
-          var x=lplanet[i].position.x-player.position.x;
-          var y=lplanet[i].position.y-player.position.y;
+          var x=lplanet[i].position.x-px;
+          var y=lplanet[i].position.y-py;
           var rplanet=lplanet[i].scale.x;
           var rplayer=10;
           var dist=Math.sqrt(x*x+y*y);
@@ -370,6 +373,8 @@ from ang (2D gosu/ruby game, see github)
 			  0).multiplyScalar(10.0) 
 			);
 		};
+		if (Math.abs(px)>4300) {vitesse.x*=-1; player.position.addSelf( vitesse )};
+		if (Math.abs(py)>4300) {vitesse.y*=-1; player.position.addSelf( vitesse )};
         var v=Math.sqrt(vitesse.x*vitesse.x+vitesse.y*vitesse.y)
         direction=new THREE.Vector3(vitesse.x, vitesse.y, vitesse.z).multiplyScalar(1/v);
         //if (v>200) 
@@ -428,10 +433,29 @@ from ang (2D gosu/ruby game, see github)
 		  help();
 		  currentlyPressedKeys[K_F1]=false;
 		}
+		if (currentlyPressedKeys[K_F3]) {
+		  spy();
+		  currentlyPressedKeys[K_F1]=false;
+		}
       }
 	  
 	  
-      /////////////////////// tools
+      /////////////////////////// Divs //////////////////////////////////////////////////
+	  var divSpy=null;
+      function spy() {
+	    energie=(energie>1000) ? 1000 : (energie<0 ? 0 : energie );
+		if (divSpy==null) {
+		  divSpy = document.createElement('div');
+		  var h={
+		     position: "absolute", top: "5px", left:"20px",width:"80px",height: "70px", 
+		     background: "#033",zIndex: 100,font: "8px bold courier", "text-align": "left"
+		  }
+		  for (key in h) divSpy.style[key]=h[key];
+		  document.body.appendChild(divSpy);
+		}
+		divSpy.innerHTML="X/Y= "+Math.floor(player.position.x)+" / "+Math.floor(player.position.y)+"<br>"+
+					"energie="+Math.floor(energie)+"<br>";
+	  }
 	  
 	  var divEnergie=null;
       function showEnergie() {
@@ -462,13 +486,14 @@ from ang (2D gosu/ruby game, see github)
 		  divHelp= document.createElement('div');
 		  var h={
 			position: "absolute", top: "25%", left:"15%",width:"70%",height: "50%",
-			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "18px bold Arial", color: "#FF0"
+			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "18px bold Arial", color: "#FF0",
+		    "text-align":"left", "padding-left": "30px"
 		  };
 		  for (key in h) divHelp.style[key]=h[key];
-		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>Mouse does nohing..."+
+		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>Mouse does nothing..."+
 		   "<br><hr/><br>Energie is consume when accelerate or planete collision. Eating red ball give some energies :)"+
-		   "<br>You can win by eating all ball."+
-		   "<br><hr><br><br><a href='javascript:closeHelp();'> Close </a>";  
+		   "<br>You can win (?) by eating all ball."+
+		   "<br><hr><br><br><center><a href='javascript:closeHelp();'> Close </a></center>";  
 		  document.body.appendChild(divHelp);
 	  }
 	  function closeHelp() { if (divHelp) {document.body.removeChild(divHelp); divHelp=null;} }
@@ -481,7 +506,6 @@ from ang (2D gosu/ruby game, see github)
         nuages[i].reinit(pos.clone().addSelf(decl),v);
       }
       function addMesh( geometry, scale, x, y, z, rx, ry, rz, material ) {
-
         mesh = new THREE.Mesh( geometry, material );
         mesh.scale.set( scale, scale, scale );
         mesh.position.set( x, y, z );
