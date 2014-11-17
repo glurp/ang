@@ -160,7 +160,7 @@ from ang (2D gosu/ruby game, see github)
         camera.up = new THREE.Vector3(0,0,1);
         scene = new THREE.Scene();
 
-        //==================== Eclairage
+        //==================== Light
 
         var ambient = new THREE.AmbientLight( 0x101010 );
         scene.add( ambient );
@@ -231,12 +231,12 @@ from ang (2D gosu/ruby game, see github)
 
         //======================= plan 
         
-        /*addMesh(new THREE.CubeGeometry( 100000, 100000, 1),
+        addMesh(new THREE.CubeGeometry( 2*4300, 2*4300, 1),
           1,
-          0, 0,-20,
+          0,0,-100,
           0 ,0,0,
           new THREE.MeshPhongMaterial( { ambient: 0x000000, color: 0x404040, specular: 0x555555, shininess: 30 , opacity: 0.3} )); 
-        */
+        
         //=====================  sun?
 		
         addMesh( new THREE.SphereGeometry( 5, 32, 32 ), 30.0, 
@@ -267,8 +267,8 @@ from ang (2D gosu/ruby game, see github)
                     
         player=addMesh(gplayer,
          1,  
-         rand(-SCREEN_WIDTH/2,SCREEN_WIDTH/2),
-         rand(-SCREEN_HEIGHT/2,SCREEN_HEIGHT/2),0,
+         rand(-2000,2000),
+         rand(-2000,2000),0,
          0, 0, 0,
          matp
         )
