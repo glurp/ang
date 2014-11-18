@@ -60,7 +60,9 @@ from ang (2D gosu/ruby game, see github)
       var has_gl = 0;
       var lplanet=[];
       var ltank=[];
+	  var nbTank=0;
       var player;
+	  var traceLine;
       var acc=0.0;
       
       var c180=Math.PI;
@@ -73,9 +75,10 @@ from ang (2D gosu/ruby game, see github)
       var K_RIGHT=39;
       var K_UP=38;
       var K_DOWN=40;
-      var K_F3=114;
-      var K_F2=113;
-      var K_F1=112;
+      var K_F4=115; // help
+      var K_F3=114; // spy
+      var K_F2=113; // camera swap
+      var K_F1=112; // help
       var currentlyPressedKeys = [];
       
       var sparksEmitter;
@@ -131,23 +134,6 @@ from ang (2D gosu/ruby game, see github)
       
       for (var i=0;i <  300;i++) currentlyPressedKeys.push(false);
       
-      function generateSprite() {
-          var canvas = document.createElement( 'canvas' );
-          canvas.width = rand(10,20);
-          canvas.height = canvas.width;
-          var context = canvas.getContext( '2d' );
-          var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
-          gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
-          gradient.addColorStop( 0.2, 'rgba(0,255,255,1)' );
-          gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );
-          gradient.addColorStop( 1, 'rgba(0,0,0,1)' );
-          context.fillStyle = gradient;
-          context.fillRect( 0, 0, canvas.width, canvas.height );
-          return canvas;
-      }
-      
-      
-      
       //////////////////////// init()
       
       function init() {
@@ -157,7 +143,7 @@ from ang (2D gosu/ruby game, see github)
 
         camera = new THREE.PerspectiveCamera( 65, SCREEN_WIDTH / SCREEN_HEIGHT, 10, 100*1000 );
         camera.position.z = 1300;
-        camera.up = new THREE.Vector3(0,0,1);
+        camera.up = new THREE.Vector3(0,0,1); // top is Z axe !...
         scene = new THREE.Scene();
 
         //==================== Light
@@ -166,7 +152,7 @@ from ang (2D gosu/ruby game, see github)
         scene.add( ambient );
         
         directionalLight = new THREE.DirectionalLight( 0xffffff );
-        directionalLight.position.set( 1, 1, 2 ).normalize();
+        directionalLight.position.set( 100, 100, 300 ).normalize();
         scene.add( directionalLight );
 
         pointLight = new THREE.PointLight( 0xffffff );
@@ -228,7 +214,8 @@ from ang (2D gosu/ruby game, see github)
 			  rand(-3*SCREEN_HEIGHT,3*SCREEN_HEIGHT),0,
 			  0,0,0, mat3 )
           );
-
+		nbTank=NB_TANK;
+		
         //======================= plan 
         
         addMesh(new THREE.CubeGeometry( 2*4300, 2*4300, 1),
@@ -254,14 +241,14 @@ from ang (2D gosu/ruby game, see github)
         //====================== player : elipse  + cone
         
         var matp=new THREE.MeshPhongMaterial( { ambient: 0x000000, color: 0x00ffff, specular: 0x555555, shininess: 30 } );
+        var matp2=new THREE.MeshPhongMaterial( { ambient: 0x000000, color: 0xff0000, specular: 0x555555, shininess: 30 } );
           
         var gplayer = new THREE.Geometry();
-        var mesh = new THREE.Mesh( new THREE.SphereGeometry( 10, 1, 2 ) );
-        mesh.scale.set( 4,1,0.5);
-        THREE.GeometryUtils.merge( gplayer, mesh );
+        var mesh1 = new THREE.Mesh( new THREE.SphereGeometry( 10, 10, 10 ), matp );
+		mesh1.scale.set(2,0.2,0.2)
+        THREE.GeometryUtils.merge( gplayer, mesh1 );
         
-        var mesh2 = new THREE.Mesh( new THREE.CylinderGeometry( 10, 5,1 ) );
-        mesh2.scale.set( 2,4,2);
+        var mesh2 = new THREE.Mesh( new THREE.CylinderGeometry( 10, 5, 5 ) ,matp2);
         mesh2.rotation.set( 0,0,c90);
         THREE.GeometryUtils.merge( gplayer, mesh2 );
                     
@@ -271,8 +258,9 @@ from ang (2D gosu/ruby game, see github)
          rand(-2000,2000),0,
          0, 0, 0,
          matp
-        )
+        );
 		
+
         //======================== render preparation
         
         webglRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -377,6 +365,7 @@ from ang (2D gosu/ruby game, see github)
 		if (Math.abs(py)>4300) {vitesse.y*=-1; player.position.addSelf( vitesse )};
         var v=Math.sqrt(vitesse.x*vitesse.x+vitesse.y*vitesse.y)
         direction=new THREE.Vector3(vitesse.x, vitesse.y, vitesse.z).multiplyScalar(1/v);
+
         //if (v>200) 
         //  vitesse.multiplyScalar(200/v);
       }
@@ -391,9 +380,9 @@ from ang (2D gosu/ruby game, see github)
           dy=tank.position.y-player.position.y;
           dist=Math.sqrt(dx*dx+dy*dy);
           if (dist<2*(rtank+rplayer)) {
-		    console.log("dist= "+dist);
 			particuleInject(tank.position,new THREE.Vector3(0,0,-10));
 		    tank.visible=false;
+			nbTank-=1;
 			energie+=DENERGIE_EAT_TANK;
 		  } else
 		    nbt+=1;
@@ -429,13 +418,14 @@ from ang (2D gosu/ruby game, see github)
 		  realview=!realview;
 		  currentlyPressedKeys[K_F2]=false;
 		}
-		if (currentlyPressedKeys[K_F1]) {
+		if (currentlyPressedKeys[K_F1] || currentlyPressedKeys[K_F4]) {
 		  help();
 		  currentlyPressedKeys[K_F1]=false;
+		  currentlyPressedKeys[K_F4]=false;
 		}
 		if (currentlyPressedKeys[K_F3]) {
 		  spy();
-		  currentlyPressedKeys[K_F1]=false;
+		  currentlyPressedKeys[K_F3]=false;
 		}
       }
 	  
@@ -445,59 +435,59 @@ from ang (2D gosu/ruby game, see github)
       function spy() {
 	    energie=(energie>1000) ? 1000 : (energie<0 ? 0 : energie );
 		if (divSpy==null) {
-		  divSpy = document.createElement('div');
-		  var h={
+		  divSpy = divScore=makediv({
 		     position: "absolute", top: "5px", left:"20px",width:"80px",height: "70px", 
-		     background: "#033",zIndex: 100,font: "8px bold courier", "text-align": "left"
-		  }
-		  for (key in h) divSpy.style[key]=h[key];
-		  document.body.appendChild(divSpy);
+		     background: "#033",color: "#600",zIndex: 100,font: "8px bold courier", "text-align": "left"
+		  });
 		}
 		divSpy.innerHTML="X/Y= "+Math.floor(player.position.x)+" / "+Math.floor(player.position.y)+"<br>"+
 					"energie="+Math.floor(energie)+"<br>";
 	  }
 	  
 	  var divEnergie=null;
+	  var divScore=null;
       function showEnergie() {
 	    energie=(energie>1000) ? 1000 : (energie<0 ? 0 : energie );
 		if (divEnergie==null) {
-		  divEnergie = document.createElement('div');
-		  var h={position: "absolute", top: "10px", left:"10px",width:"6px",height: "900px", background: "#0ff",zIndex: 100}
-		  for (key in h) divEnergie.style[key]=h[key];
-		  document.body.appendChild(divEnergie);
+		  divEnergie=makediv({position: "absolute", top: "10px", left:"10px",width:"6px",height: "900px", background: "#0ff",zIndex: 100});
+		  divScore=makediv({position: "absolute", top: "10px", left:"20px",width:"60px",height: "20px", background: "#0ff",color: "#600",zIndex: 100});
 		}
 		divEnergie.style["height"]=""+energie+"px";
 		divEnergie.style.background= (energie>100) ? "#0FF" : "#F00";
+		divScore.innerHTML=nbTank;
 	  }
+	  
 	  var divEnd=null;
 	  function  winner(ok) {
 		if (divEnd==null) {
-		  divEnd = document.createElement('div');
-		  var h={position: "absolute", top: "25%", left:"25%",width:"50%",height: "50%", background: "rgba(64,0,0,0.3)",zIndex: 200,font: "23px bold Arial", color: "#FF0"}
-		  for (key in h) divEnd.style[key]=h[key];
+		  divEnd = makediv({position: "absolute", top: "25%", left:"25%",width:"50%",height: "50%", background: "rgba(64,0,0,0.3)",zIndex: 200,font: "23px bold Arial", color: "#FF0"});
 		  divEnd.innerHTML= "<br><br><br>GAME OVER : You " + (ok ? "win" : "loose" )+ " !";  
-		  document.body.appendChild(divEnd);
 		}
 	  }
 	  	 
 	  var divHelp=null;
 	  function  help() {
 		  if (divHelp) return ;
-		  divHelp= document.createElement('div');
-		  var h={
+		  
+		  divHelp= makediv({
 			position: "absolute", top: "25%", left:"15%",width:"70%",height: "50%",
 			background: "rgba(64,0,0,0.3)",zIndex: 200,font: "18px bold Arial", color: "#FF0",
-		    "text-align":"left", "padding-left": "30px"
-		  };
-		  for (key in h) divHelp.style[key]=h[key];
-		  divHelp.innerHTML= "<br/><br/>F2  : toggle camera<br/>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>Mouse does nothing..."+
+		    "textAlign":"left", "paddingLeft": "30px"
+		  });
+		  divHelp.innerHTML= "<br/>F1 or F4: help<br/>F2  : toggle camera<br/>F5 : restart :)<br>Arrow Left/Right  : turn spacecraft<br/>Arrow up/down : accelerate<br/>Mouse does nothing..."+
 		   "<br><hr/><br>Energie is consume when accelerate or planete collision. Eating red ball give some energies :)"+
 		   "<br>You can win (?) by eating all ball."+
 		   "<br><hr><br><br><center><a href='javascript:closeHelp();'> Close </a></center>";  
-		  document.body.appendChild(divHelp);
 	  }
 	  function closeHelp() { if (divHelp) {document.body.removeChild(divHelp); divHelp=null;} }
-
+	  
+	  function makediv(h) {
+		  var div= document.createElement('div');
+		  for (key in h) div.style[key]=h[key];
+		  document.body.appendChild(div);
+		  return(div);
+	  }
+	  
       var ipart=0;
       function particuleInject(pos,vitesse) {
         var v=vitesse.clone().multiplyScalar(-1);
