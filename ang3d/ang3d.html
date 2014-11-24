@@ -517,8 +517,9 @@ from ang (2D gosu/ruby game, see github)
       document.onkeydown = handleKeyDown;
       document.onkeyup = handleKeyUp;
 
-      init();
-      animate();
-      
+      window.onload=function() {
+	    init();
+        animate();
+      };
     </script>
 </body></html>
