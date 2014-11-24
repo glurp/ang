@@ -164,7 +164,7 @@ from ang (2D gosu/ruby game, see github)
         var bitmap = new Image();
         bitmap.src = bitmapdata;
 		var texture=new THREE.Texture(bitmap);
-		texture.needsUpdate = true;
+		bitmap.onload = function()  { texture.needsUpdate = true; };
 		
         particles = new THREE.Geometry();				
         shaderMaterial =  new THREE.ParticleBasicMaterial({
